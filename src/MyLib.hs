@@ -1,4 +1,0 @@
-module MyLib
-  (
-  )
-where

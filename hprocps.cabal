@@ -11,9 +11,13 @@ copyright:          Copyright(c) Frederick Pringle 2025
 homepage:           https://github.com/fpringle/hprocps
 build-type:         Simple
 extra-doc-files:    CHANGELOG.md
+extra-source-files:
+  , cbits/readproc-wrapper.h
+  , cbits/readproc-wrapper.c
 
 common warnings
   ghc-options: -Wall -Wno-unused-do-bind
+  cc-options: -Wno-int-conversion -Wno-implicit-function-declaration
 
 common deps
   build-depends:
@@ -58,12 +62,19 @@ library
     , deps
     , extensions
   exposed-modules:
-      MyLib
-  -- other-modules:
+      System.Proc.Error
+      System.Proc.Tab
+  other-modules:
+      System.Proc.Tab.C
   -- other-extensions:
   hs-source-dirs:   src
   default-language: Haskell2010
   extra-libraries: procps
+  include-dirs:     cbits
+  includes:         cbits/readproc-wrapper.h
+  install-includes: cbits/readproc-wrapper.h
+  c-sources:        cbits/readproc-wrapper.c
+  build-tool-depends:  hsc2hs:hsc2hs
 
 test-suite hprocps-test
   import:

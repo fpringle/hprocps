@@ -4,8 +4,9 @@ let
   pre-commit-check = import ./nix/pre-commit.nix;
   sources = import ./nix/sources.nix;
 in
+  with nixpkgs;
   with nixpkgs.haskellPackages;
-    shellFor {
+    shellFor rec {
       packages = p: [(import ./.)];
       buildInputs = [
         cabal-install
@@ -13,8 +14,16 @@ in
         hlint
         fourmolu
         ghcid
+        procps
+
+        clang-tools
+
+        gdb
+        valgrind
       ];
       shellHook = ''
         ${pre-commit-check.shellHook}
       '';
+
+      LD_LIBRARY_PATH = nixpkgs.lib.makeLibraryPath buildInputs;
     }
