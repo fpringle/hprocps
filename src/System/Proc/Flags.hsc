@@ -1,3 +1,5 @@
+#include <proc/readproc.h>
+
 module System.Proc.Flags
   ( TableConfig (..)
 
@@ -6,6 +8,7 @@ module System.Proc.Flags
 
     -- * Binary flags
   , Flags
+  , flagsAsInt
 
     -- ** Constructing flags
   , noFlags
@@ -22,6 +25,7 @@ module System.Proc.Flags
   , fillOOM
   , fillNS
   , fillSystemd
+  , fillLxc
   , fillLooseTasks
 
     -- ** Accessors
@@ -37,11 +41,15 @@ module System.Proc.Flags
   , flagSupGroup
   , flagOOM
   , flagNS
-  , flagSystemD
+  , flagSystemd
+  , flagLxc
   , flagLooseTasks
   )
 where
 
+import Data.Bits
+import Data.Foldable
+import Foreign.C.Types
 import System.Posix.Types
 
 ------------------------------------------------------------
@@ -60,9 +68,36 @@ data Flags = Flags
   , flagSupGroup :: Bool
   , flagOOM :: Bool
   , flagNS :: Bool
-  , flagSystemD :: Bool
+  , flagSystemd :: Bool
+  , flagLxc :: Bool
   , flagLooseTasks :: Bool
   }
+
+flagsAsInt :: Flags -> CInt
+flagsAsInt Flags {..} =
+  foldl' f (0 :: CInt) bits
+  where
+    f :: CInt -> (Bool, CInt) -> CInt
+    f acc (False, _) = acc
+    f acc (True, fl) = acc .|. fl
+
+    bits =
+      [ (flagMem, #{const PROC_FILLMEM})
+      , (flagCom, #{const PROC_FILLCOM})
+      , (flagEnv, #{const PROC_FILLENV})
+      , (flagUser, #{const PROC_FILLUSR})
+      , (flagGroup, #{const PROC_FILLGRP})
+      , (flagStatus, #{const PROC_FILLSTATUS})
+      , (flagStat, #{const PROC_FILLSTAT})
+      , (flagArg, #{const PROC_FILLARG})
+      , (flagCGroup, #{const PROC_FILLCGROUP})
+      , (flagSupGroup, #{const PROC_FILLSUPGRP})
+      , (flagOOM, #{const PROC_FILLOOM})
+      , (flagNS, #{const PROC_FILLNS})
+      , (flagSystemd, #{const PROC_FILLSYSTEMD})
+      , (flagLxc, #{const PROC_FILL_LXC})
+      , (flagLooseTasks, #{const PROC_LOOSE_TASKS})
+      ]
 
 fillMem :: Flags
 fillMem = noFlags {flagMem = True}
@@ -101,7 +136,10 @@ fillNS :: Flags
 fillNS = noFlags {flagNS = True}
 
 fillSystemd :: Flags
-fillSystemd = noFlags {flagSystemD = True}
+fillSystemd = noFlags {flagSystemd = True}
+
+fillLxc :: Flags
+fillLxc = noFlags {flagLxc = True}
 
 fillLooseTasks :: Flags
 fillLooseTasks = noFlags {flagLooseTasks = True}
@@ -121,7 +159,8 @@ instance Semigroup Flags where
       , flagSupGroup = flagSupGroup f1 || flagSupGroup f2
       , flagOOM = flagOOM f1 || flagOOM f2
       , flagNS = flagNS f1 || flagNS f2
-      , flagSystemD = flagSystemD f1 || flagSystemD f2
+      , flagSystemd = flagSystemd f1 || flagSystemd f2
+      , flagLxc = flagLxc f1 || flagLxc f2
       , flagLooseTasks = flagLooseTasks f1 || flagLooseTasks f2
       }
 
@@ -143,7 +182,8 @@ noFlags =
     , flagSupGroup = False
     , flagOOM = False
     , flagNS = False
-    , flagSystemD = False
+    , flagSystemd = False
+    , flagLxc = False
     , flagLooseTasks = False
     }
 
