@@ -26,19 +26,19 @@ void closeproctab(proctab_t *pt) {
   }
 }
 
-proc_t_wrapper **readproctab_simple(int flags) {
+proc_t_wrapper **readallprocs_simple(int flags) {
   flags = (flags & (~PROC_PID)) & (~PROC_UID);
   proc_t **P = readproctab(flags);
   return (proc_t_wrapper **)P;
 }
 
-proc_t_wrapper **readproctab_pids(int flags, pid_t *pids) {
+proc_t_wrapper **readallprocs_pids(int flags, pid_t *pids) {
   flags = (flags | PROC_PID) & (~PROC_UID);
   proc_t **P = readproctab(flags, pids);
   return (proc_t_wrapper **)P;
 }
 
-proc_t_wrapper **readproctab_uids(int flags, uid_t *uids, int nuid) {
+proc_t_wrapper **readallprocs_uids(int flags, uid_t *uids, int nuid) {
   flags = (flags | PROC_UID) & (~PROC_PID);
   proc_t **P = readproctab(flags, uids, nuid);
   return (proc_t_wrapper **)P;

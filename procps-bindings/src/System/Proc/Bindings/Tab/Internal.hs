@@ -34,4 +34,4 @@ withProcTabPtr cfg = withProcTabPtr' (openProcTabPtr cfg)
 to check that the 'Ptr' is not null, and to free it once they're done with it.
 -}
 openProcTabPtr :: TableConfig -> IO (Ptr ProcTabC)
-openProcTabPtr = branchTableConfig openProcTabSimple openProcTabPids openProcTabUids
+openProcTabPtr = branchTableConfig openProcTabSimple openProcTabFromPids openProcTabFromUids

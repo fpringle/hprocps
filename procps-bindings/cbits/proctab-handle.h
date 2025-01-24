@@ -12,8 +12,8 @@ proctab_t *openproctab_uids(int flags, uid_t *uids, int nuid);
 
 void closeproctab(proctab_t *PT);
 
-proc_t_wrapper **readproctab_simple(int flags);
-proc_t_wrapper **readproctab_pids(int flags, pid_t *pids);
-proc_t_wrapper **readproctab_uids(int flags, uid_t *uids, int nuid);
+proc_t_wrapper **readallprocs_simple(int flags);
+proc_t_wrapper **readallprocs_pids(int flags, pid_t *pids);
+proc_t_wrapper **readallprocs_uids(int flags, uid_t *uids, int nuid);
 
 #endif

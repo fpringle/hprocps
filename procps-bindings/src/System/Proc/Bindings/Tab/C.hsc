@@ -6,8 +6,8 @@
 module System.Proc.Bindings.Tab.C
   ( ProcTabC
   , openProcTabSimple
-  , openProcTabPids
-  , openProcTabUids
+  , openProcTabFromPids
+  , openProcTabFromUids
   , closeProcTabC
   )
 where
@@ -21,8 +21,8 @@ data ProcTabC :: Type
 
 foreign import capi unsafe "openproctab_simple" openProcTabSimple :: CInt -> IO (Ptr ProcTabC)
 
-foreign import capi unsafe "openproctab_pids" openProcTabPids :: CInt -> Ptr CPid -> IO (Ptr ProcTabC)
+foreign import capi unsafe "openproctab_pids" openProcTabFromPids :: CInt -> Ptr CPid -> IO (Ptr ProcTabC)
 
-foreign import capi unsafe "openproctab_uids" openProcTabUids :: CInt -> Ptr CUid -> CInt -> IO (Ptr ProcTabC)
+foreign import capi unsafe "openproctab_uids" openProcTabFromUids :: CInt -> Ptr CUid -> CInt -> IO (Ptr ProcTabC)
 
 foreign import capi unsafe "closeproctab" closeProcTabC :: Ptr ProcTabC -> IO ()

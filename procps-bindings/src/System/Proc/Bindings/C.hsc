@@ -13,9 +13,9 @@ module System.Proc.Bindings.C
   , freeProc
   , readProcCInfo
   , readNextProcC
-  , readProcTabSimple
-  , readProcTabPids
-  , readProcTabUids
+  , readAllProcsSimple
+  , readAllProcsPids
+  , readAllProcsUids
   , readSelfProc
   )
 where
@@ -474,10 +474,10 @@ foreign import capi unsafe "read_proc_wrapper" readNextProcC :: Ptr ProcTabC -> 
 
 foreign import capi unsafe "free_proc_wrapper" freeProc :: Ptr ProcC -> IO ()
 
-foreign import capi unsafe "readproctab_simple" readProcTabSimple :: CInt -> IO (Ptr (Ptr ProcC))
+foreign import capi unsafe "readallprocs_simple" readAllProcsSimple :: CInt -> IO (Ptr (Ptr ProcC))
 
-foreign import capi unsafe "readproctab_pids" readProcTabPids :: CInt -> Ptr CPid -> IO (Ptr (Ptr ProcC))
+foreign import capi unsafe "readallprocs_pids" readAllProcsPids :: CInt -> Ptr CPid -> IO (Ptr (Ptr ProcC))
 
-foreign import capi unsafe "readproctab_uids" readProcTabUids :: CInt -> Ptr CUid -> CInt -> IO (Ptr (Ptr ProcC))
+foreign import capi unsafe "readallprocs_uids" readAllProcsUids :: CInt -> Ptr CUid -> CInt -> IO (Ptr (Ptr ProcC))
 
 foreign import capi unsafe "lookup_self_wrapper" readSelfProc :: IO (Ptr ProcC)

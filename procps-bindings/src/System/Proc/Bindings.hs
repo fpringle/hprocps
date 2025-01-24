@@ -68,7 +68,7 @@ readNextProcInfo (UnsafeProcTab procTabPtr procPtr') = do
 
 readProcTab' :: TableConfig -> IO (Ptr (Ptr ProcC))
 readProcTab' =
-  branchTableConfig readProcTabSimple readProcTabPids readProcTabUids
+  branchTableConfig readAllProcsSimple readAllProcsPids readAllProcsUids
 
 readPtrArray0 :: Ptr (Ptr a) -> IO [Ptr a]
 readPtrArray0 ptr
