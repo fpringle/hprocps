@@ -12,8 +12,9 @@ module System.Proc
   , nextProc
 
     -- * One-shot API
-  , readProcCPtrs
+  , withProcs
   , readProcInfos
+  , withSelfProc
 
     -- * Field accessors
   , SignalMask
@@ -23,13 +24,12 @@ module System.Proc
 where
 
 import Control.Monad
-import Data.Functor
-import Data.Maybe
+import Data.Either
 import Foreign
 import System.Proc.C
 import System.Proc.Error
 import System.Proc.Flags
-import System.Proc.Internal (Proc, ProcInfo (..), makeProc)
+import System.Proc.Internal (Proc, ProcInfo (..))
 import System.Proc.Internal as Export hiding (Proc (..), ProcInfo (..), fromProcC, makeProc)
 import qualified System.Proc.Internal as Internal
 import System.Proc.Tab.Internal
@@ -65,10 +65,13 @@ readProcCPtrs' ptr
 readProcInfos :: TableConfig -> IO [ProcInfo]
 readProcInfos = readProcTab' >=> readProcInfos'
 
-readProcCPtrs :: TableConfig -> IO [Proc]
-readProcCPtrs cfg =
-  readProcTab' cfg
-    >>= readProcCPtrs'
-    <&> mapMaybe (rightToMaybe . makeProc)
-  where
-    rightToMaybe = either (const Nothing) Just
+withProcs :: TableConfig -> ([Proc] -> IO a) -> IO a
+withProcs cfg f = do
+  ptrs <- readProcTab' cfg >>= readProcCPtrs'
+  let procs = rights $ Internal.makeProc <$> ptrs
+  f procs
+
+withSelfProc :: (Proc -> IO a) -> IO (Either ProcError a)
+withSelfProc f = do
+  fmap join . withProcPtr readSelfProc $
+    traverse f . Internal.makeProc

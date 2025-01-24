@@ -16,6 +16,7 @@ module System.Proc.C
   , readProcTabSimple
   , readProcTabPids
   , readProcTabUids
+  , readSelfProc
   )
 where
 
@@ -487,3 +488,5 @@ foreign import capi unsafe "readproctab_simple" readProcTabSimple :: CInt -> IO 
 foreign import capi unsafe "readproctab_pids" readProcTabPids :: CInt -> Ptr CPid -> IO (Ptr (Ptr ProcC))
 
 foreign import capi unsafe "readproctab_uids" readProcTabUids :: CInt -> Ptr CUid -> CInt -> IO (Ptr (Ptr ProcC))
+
+foreign import capi unsafe "lookup_self_wrapper" readSelfProc :: IO (Ptr ProcC)

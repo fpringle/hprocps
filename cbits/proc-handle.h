@@ -10,4 +10,6 @@ proc_t_wrapper *read_proc_wrapper(proctab_t *pt, proc_t_wrapper *p);
 
 void free_proc_wrapper(proc_t_wrapper *p);
 
+proc_t_wrapper *lookup_self_wrapper();
+
 #endif
