@@ -10,14 +10,15 @@ module System.Proc.Bindings.Tab
 where
 
 import Control.Monad
+import Foreign.C.Types
 import Foreign.Marshal.Alloc
 import Foreign.Ptr
+import System.Posix.Types
 import System.Proc.Bindings.Error
 import System.Proc.Bindings.Tab.C
 import System.Proc.Bindings.Tab.Config
 import System.Proc.Bindings.Tab.Internal
 
--- | TODO
 getProcTabInfo :: ProcTab -> IO ProcTabInfo
 getProcTabInfo (UnsafeProcTab ptr _) = fromProcTabC ptr
 
@@ -44,15 +45,23 @@ closeProcTab (UnsafeProcTab procTabPtr procPtr) = do
   unless (procTabPtr == nullPtr) $ closeProcTabC procTabPtr
   unless (procPtr == nullPtr) $ free procPtr
 
--- | TODO
 data ProcTabInfo = ProcTabInfo
-  {
+  { didFake :: Bool
+  , pids :: [CPid]
+  , uids :: [CUid]
+  , flags :: CUInt
+  , path :: FilePath
   }
   deriving (Show)
 
 fromProcTabC :: Ptr ProcTabC -> IO ProcTabInfo
-fromProcTabC _ptr = do
-  pure ProcTabInfo
+fromProcTabC ptr = do
+  didFake <- readProcTabDidFake ptr
+  pids <- readProcTabPids ptr
+  uids <- readProcTabUids ptr
+  flags <- readProcTabFlags ptr
+  path <- readProcTabPath ptr
+  pure ProcTabInfo {..}
 
 readProcTabInfo :: TableConfig -> IO (Either ProcError ProcTabInfo)
 readProcTabInfo cfg =

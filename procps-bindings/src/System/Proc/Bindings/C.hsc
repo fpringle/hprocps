@@ -20,7 +20,6 @@ module System.Proc.Bindings.C
   )
 where
 
-import Data.Maybe
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
@@ -174,12 +173,7 @@ readStringList ptr
   | otherwise = peekArray0 nullPtr ptr >>= mapMaybeM readStringMaybe
 
 readLongList :: Ptr CLong -> IO [CLong]
-readLongList ptr = fromMaybe [] <$> readNulTermArrayMaybe ptr
-
-readNulTermArrayMaybe :: (Storable a, Num a, Eq a) => Ptr a -> IO (Maybe [a])
-readNulTermArrayMaybe ptr
-  | ptr == nullPtr = pure Nothing
-  | otherwise = Just <$> peekArray0 0 ptr
+readLongList = readNullTermArray
 
 readProcCInfo :: Ptr ProcC -> IO ProcInfo'
 readProcCInfo pcPtr = do
