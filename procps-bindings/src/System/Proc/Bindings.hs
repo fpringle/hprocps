@@ -123,4 +123,4 @@ openSelfProc = Internal.makeProc <$> readSelfProc
 The 'Proc' must not be used after 'closeProc' has been called.
 -}
 closeProc :: Proc -> IO ()
-closeProc (Internal.UnsafeProc ptr) = unless (ptr == nullPtr) $ freeProc ptr
+closeProc (Internal.UnsafeProc ptr) = freeProc ptr

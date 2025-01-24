@@ -45,9 +45,7 @@ readNullTermArray :: (Storable a, Num a, Eq a) => Ptr a -> IO [a]
 readNullTermArray ptr = fromMaybe [] <$> readNullTermArrayMaybe ptr
 
 readNullTermArrayMaybe :: (Storable a, Num a, Eq a) => Ptr a -> IO (Maybe [a])
-readNullTermArrayMaybe ptr
-  | ptr == nullPtr = pure Nothing
-  | otherwise = Just <$> peekArray0 0 ptr
+readNullTermArrayMaybe = maybePeek $ peekArray0 0
 
 readProcTabPath :: Ptr ProcTabC -> IO FilePath
 readProcTabPath ptr = do

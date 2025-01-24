@@ -42,7 +42,7 @@ openProcTab cfg = do
 -- | Free the internal 'Ptr's of a 'ProcTab', if they're not null.
 closeProcTab :: ProcTab -> IO ()
 closeProcTab (UnsafeProcTab procTabPtr procPtr) = do
-  unless (procTabPtr == nullPtr) $ closeProcTabC procTabPtr
+  closeProcTabC procTabPtr
   unless (procPtr == nullPtr) $ free procPtr
 
 data ProcTabInfo = ProcTabInfo

@@ -15,11 +15,8 @@ data ProcTab
 
 withProcTabPtr' :: IO (Ptr ProcTabC) -> (Ptr ProcTabC -> IO a) -> IO (Either ProcError a)
 withProcTabPtr' open f =
-  bracket open close action
+  bracket open closeProcTabC action
   where
-    close ptr
-      | ptr == nullPtr = pure ()
-      | otherwise = closeProcTabC ptr
     action ptr
       | ptr == nullPtr = pure $ Left NullPtrError
       | otherwise = Right <$> f ptr

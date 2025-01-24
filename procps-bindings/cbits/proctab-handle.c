@@ -20,10 +20,8 @@ proctab_t *openproctab_uids(int flags, uid_t *uids, int nuid) {
 }
 
 void closeproctab(proctab_t *pt) {
-  if (pt) {
-    PROCTAB *PT = (PROCTAB *)pt;
-    closeproc(PT);
-  }
+  PROCTAB *PT = (PROCTAB *)pt;
+  closeproc(PT);
 }
 
 proc_t_wrapper **readallprocs_simple(int flags) {

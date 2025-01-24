@@ -15,15 +15,13 @@ proc_t_wrapper *read_proc_wrapper(proctab_t *pt, proc_t_wrapper *p_init) {
 }
 
 void free_proc_wrapper(proc_t_wrapper *p) {
-  if (p) {
-    proc_t *P = (proc_t *)(p);
-    freeproc(P);
-  }
+  proc_t *P = (proc_t *)(p);
+  freeproc(P);
 }
 
 proc_t_wrapper *lookup_self_wrapper() {
   proc_t *P = malloc(sizeof(proc_t));
   look_up_our_self(P);
-  proc_t_wrapper *p = (proc_t_wrapper*)P;
+  proc_t_wrapper *p = (proc_t_wrapper *)P;
   return p;
 }

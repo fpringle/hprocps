@@ -23,6 +23,7 @@ where
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
+import Foreign.Marshal.Utils
 import System.Posix.Types
 import System.Proc.Bindings.Tab.C
 
@@ -154,9 +155,8 @@ type ProcC = Proc' CString CString (Ptr CString) (Ptr CLong) (Ptr ())
 type ProcInfo' = Proc' (Maybe String) (Maybe String) [String] [CLong] ()
 
 readStringMaybe :: CString -> IO (Maybe String)
-readStringMaybe cStr
-  | cStr == nullPtr = pure Nothing
-  | otherwise = Just <$> peekCString cStr
+readStringMaybe = maybePeek peekCString
+{-# INLINE readStringMaybe #-}
 
 mapMaybeM :: (Monad m) => (a -> m (Maybe b)) -> [a] -> m [b]
 mapMaybeM f = go
@@ -174,6 +174,7 @@ readStringList ptr
 
 readLongList :: Ptr CLong -> IO [CLong]
 readLongList = readNullTermArray
+{-# INLINE readLongList #-}
 
 readProcCInfo :: Ptr ProcC -> IO ProcInfo'
 readProcCInfo pcPtr = do
