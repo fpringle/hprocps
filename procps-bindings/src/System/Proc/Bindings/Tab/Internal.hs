@@ -3,6 +3,7 @@ module System.Proc.Bindings.Tab.Internal where
 import Control.Exception
 import Foreign
 import System.Proc.Bindings.C
+import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Error
 import System.Proc.Bindings.Tab.C
 import System.Proc.Bindings.Tab.Config
@@ -14,12 +15,7 @@ data ProcTab
       (Ptr ProcC)
 
 withProcTabPtr' :: IO (Ptr ProcTabC) -> (Ptr ProcTabC -> IO a) -> IO (Either ProcError a)
-withProcTabPtr' open f =
-  bracket open closeProcTabC action
-  where
-    action ptr
-      | ptr == nullPtr = pure $ Left NullPtrError
-      | otherwise = Right <$> f ptr
+withProcTabPtr' open = bracket open closeProcTabC . eitherPeek
 
 {- | Bracketed access to a @'Ptr' 'ProcTabC'@. The pointer will be freed after use.
 Return a 'ProcError' if the pointer is null.

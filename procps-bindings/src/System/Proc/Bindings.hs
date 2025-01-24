@@ -32,6 +32,7 @@ import Data.Foldable
 import Data.Functor
 import Foreign
 import System.Proc.Bindings.C
+import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Error
 import System.Proc.Bindings.Internal (Proc, ProcInfo (..))
 import System.Proc.Bindings.Internal as Export hiding
@@ -62,9 +63,7 @@ readNextProc (UnsafeProcTab procTabPtr procPtr') = do
 readNextProcInfo :: ProcTab -> IO (Either ProcError ProcInfo)
 readNextProcInfo (UnsafeProcTab procTabPtr procPtr') = do
   procPtr <- readNextProcC procTabPtr procPtr'
-  if procPtr == nullPtr
-    then pure $ Left NullPtrError
-    else Right <$> Internal.fromProcC procPtr
+  eitherPeek Internal.fromProcC procPtr
 
 readProcTab' :: TableConfig -> IO (Ptr (Ptr ProcC))
 readProcTab' =

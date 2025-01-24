@@ -23,8 +23,8 @@ where
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
-import Foreign.Marshal.Utils
 import System.Posix.Types
+import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Tab.C
 
 #if defined(k64test) || (defined(_ABIN32) && _MIPS_SIM == _ABIN32)
@@ -153,24 +153,6 @@ data Proc' string charArray stringList longList procPtr = Proc
 type ProcC = Proc' CString CString (Ptr CString) (Ptr CLong) (Ptr ())
 
 type ProcInfo' = Proc' (Maybe String) (Maybe String) [String] [CLong] ()
-
-readStringMaybe :: CString -> IO (Maybe String)
-readStringMaybe = maybePeek peekCString
-{-# INLINE readStringMaybe #-}
-
-mapMaybeM :: (Monad m) => (a -> m (Maybe b)) -> [a] -> m [b]
-mapMaybeM f = go
-  where
-    go [] = pure []
-    go (a:as) =
-      f a >>= \case
-        Nothing -> go as
-        Just b -> (b:) <$> go as
-
-readStringList :: Ptr CString -> IO [String]
-readStringList ptr
-  | ptr == nullPtr = pure []
-  | otherwise = peekArray0 nullPtr ptr >>= mapMaybeM readStringMaybe
 
 readLongList :: Ptr CLong -> IO [CLong]
 readLongList = readNullTermArray

@@ -73,6 +73,7 @@ library
       System.Proc.Bindings.Tab.C
       System.Proc.Bindings.Tab.Internal
       System.Proc.Bindings.C
+      System.Proc.Bindings.C.Utils
       System.Proc.Bindings.Internal
   -- other-extensions:
   hs-source-dirs:   src

@@ -24,11 +24,10 @@ module System.Proc.Bindings.Tab.C
 where
 
 import Data.Kind
-import Data.Maybe
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
-import Foreign.Marshal.Utils
+import System.Proc.Bindings.C.Utils
 import System.Posix.Types
 
 data ProcTabC :: Type
@@ -40,12 +39,6 @@ foreign import capi unsafe "openproctab_pids" openProcTabFromPids :: CInt -> Ptr
 foreign import capi unsafe "openproctab_uids" openProcTabFromUids :: CInt -> Ptr CUid -> CInt -> IO (Ptr ProcTabC)
 
 foreign import capi unsafe "closeproctab" closeProcTabC :: Ptr ProcTabC -> IO ()
-
-readNullTermArray :: (Storable a, Num a, Eq a) => Ptr a -> IO [a]
-readNullTermArray ptr = fromMaybe [] <$> readNullTermArrayMaybe ptr
-
-readNullTermArrayMaybe :: (Storable a, Num a, Eq a) => Ptr a -> IO (Maybe [a])
-readNullTermArrayMaybe = maybePeek $ peekArray0 0
 
 readProcTabPath :: Ptr ProcTabC -> IO FilePath
 readProcTabPath ptr = do
