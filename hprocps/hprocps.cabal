@@ -1,0 +1,91 @@
+cabal-version:      3.0
+name:               hprocps
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            BSD-3-Clause
+license-file:       LICENSE
+author:             Frederick Pringle
+maintainer:         freddyjepringle@gmail.com
+copyright:          Copyright(c) Frederick Pringle 2025
+homepage:           https://github.com/fpringle/hprocps
+build-type:         Simple
+
+common warnings
+  ghc-options: -g3 -Wall -Wno-unused-do-bind -finfo-table-map
+  cc-options: -g -ggdb -Wno-int-conversion -Wno-implicit-function-declaration
+
+common deps
+  build-depends:
+    , base >= 4
+    , procps-bindings
+    , resourcet
+    , transformers
+
+common extensions
+  default-extensions:
+    BangPatterns
+    DeriveGeneric
+    DerivingVia 
+    FlexibleContexts
+    FlexibleInstances
+    GADTs
+    InstanceSigs
+    LambdaCase
+    MultiParamTypeClasses
+    NamedFieldPuns
+    OverloadedStrings
+    PackageImports
+    RecordWildCards
+    ScopedTypeVariables
+    TupleSections
+    TypeApplications
+    ViewPatterns
+    RankNTypes
+    UndecidableInstances
+    KindSignatures
+    DataKinds
+    StandaloneKindSignatures
+    AllowAmbiguousTypes
+    DefaultSignatures
+    PolyKinds
+    TypeFamilies
+    ConstraintKinds
+    StandaloneDeriving
+    Arrows
+    TypeOperators
+
+library
+  import:
+      warnings
+    , deps
+    , extensions
+  exposed-modules:
+      System.Proc
+      System.Proc.Tab
+      System.Proc.Monad
+  other-modules:
+      System.Proc.Monad.Internal
+      System.Proc.Tab.Internal
+  -- other-extensions:
+  hs-source-dirs:   src
+  default-language: Haskell2010
+
+test-suite hprocps-test
+  import:
+      warnings
+    , deps
+    , extensions
+  default-language: Haskell2010
+  -- other-modules:
+  -- other-extensions:
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-tool-depends:
+      hspec-discover:hspec-discover
+  ghc-options:      -Wno-orphans
+  build-depends:
+    , hprocps
+    , QuickCheck
+    , hspec

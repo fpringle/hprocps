@@ -1,0 +1,9 @@
+packages:
+    procps-bindings/
+    hprocps/
+
+-- only build documentation on demand.
+documentation: False
+
+package *
+  documentation: False

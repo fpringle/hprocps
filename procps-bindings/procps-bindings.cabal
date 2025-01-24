@@ -1,5 +1,5 @@
 cabal-version:      3.0
-name:               hprocps
+name:               procps-bindings
 version:            0.1.0.0
 -- synopsis:
 -- description:
@@ -10,7 +10,6 @@ maintainer:         freddyjepringle@gmail.com
 copyright:          Copyright(c) Frederick Pringle 2025
 homepage:           https://github.com/fpringle/hprocps
 build-type:         Simple
-extra-doc-files:    CHANGELOG.md
 extra-source-files:
   , cbits/proctab-handle.h
   , cbits/proc-handle.h
@@ -65,15 +64,16 @@ library
     , deps
     , extensions
   exposed-modules:
-      System.Proc
-      System.Proc.Flags
-      System.Proc.Error
-      System.Proc.Tab
+      System.Proc.Bindings
+      System.Proc.Bindings.Error
+      System.Proc.Bindings.Tab
+      System.Proc.Bindings.Tab.Config
   other-modules:
-      System.Proc.Tab.C
-      System.Proc.Tab.Internal
-      System.Proc.C
-      System.Proc.Internal
+      System.Proc.Bindings.Flags.C
+      System.Proc.Bindings.Tab.C
+      System.Proc.Bindings.Tab.Internal
+      System.Proc.Bindings.C
+      System.Proc.Bindings.Internal
   -- other-extensions:
   hs-source-dirs:   src
   default-language: Haskell2010
@@ -87,7 +87,7 @@ library
                     cbits/proc-handle.c
   build-tool-depends:  hsc2hs:hsc2hs
 
-test-suite hprocps-test
+test-suite procps-bindings-test
   import:
       warnings
     , deps
@@ -102,6 +102,6 @@ test-suite hprocps-test
       hspec-discover:hspec-discover
   ghc-options:      -Wno-orphans
   build-depends:
-    , hprocps
+    , procps-bindings
     , QuickCheck
     , hspec

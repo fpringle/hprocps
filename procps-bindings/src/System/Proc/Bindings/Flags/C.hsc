@@ -1,56 +1,15 @@
 #include <proc/readproc.h>
 
-module System.Proc.Flags
-  ( TableConfig (..)
-
-    -- * Table filters
-  , Filter (..)
-
-    -- * Binary flags
-  , Flags
+module System.Proc.Bindings.Flags.C
+  ( -- * Binary flags
+    Flags (..)
   , flagsAsInt
-
-    -- ** Constructing flags
-  , noFlags
-  , fillMem
-  , fillCom
-  , fillEnv
-  , fillUser
-  , fillGroup
-  , fillStatus
-  , fillStat
-  , fillArg
-  , fillCGroup
-  , fillSupGroup
-  , fillOOM
-  , fillNS
-  , fillSystemd
-  , fillLxc
-  , fillLooseTasks
-
-    -- ** Accessors
-  , flagMem
-  , flagCom
-  , flagEnv
-  , flagUser
-  , flagGroup
-  , flagStatus
-  , flagStat
-  , flagArg
-  , flagCGroup
-  , flagSupGroup
-  , flagOOM
-  , flagNS
-  , flagSystemd
-  , flagLxc
-  , flagLooseTasks
   )
 where
 
 import Data.Bits
 import Data.Foldable
 import Foreign.C.Types
-import System.Posix.Types
 
 ------------------------------------------------------------
 -- Binary flags
@@ -99,51 +58,6 @@ flagsAsInt Flags {..} =
       , (flagLooseTasks, #{const PROC_LOOSE_TASKS})
       ]
 
-fillMem :: Flags
-fillMem = noFlags {flagMem = True}
-
-fillCom :: Flags
-fillCom = noFlags {flagCom = True}
-
-fillEnv :: Flags
-fillEnv = noFlags {flagEnv = True}
-
-fillUser :: Flags
-fillUser = noFlags {flagUser = True}
-
-fillGroup :: Flags
-fillGroup = noFlags {flagGroup = True}
-
-fillStatus :: Flags
-fillStatus = noFlags {flagStatus = True}
-
-fillStat :: Flags
-fillStat = noFlags {flagStat = True}
-
-fillArg :: Flags
-fillArg = noFlags {flagArg = True}
-
-fillCGroup :: Flags
-fillCGroup = noFlags {flagCGroup = True}
-
-fillSupGroup :: Flags
-fillSupGroup = noFlags {flagSupGroup = True}
-
-fillOOM :: Flags
-fillOOM = noFlags {flagOOM = True}
-
-fillNS :: Flags
-fillNS = noFlags {flagNS = True}
-
-fillSystemd :: Flags
-fillSystemd = noFlags {flagSystemd = True}
-
-fillLxc :: Flags
-fillLxc = noFlags {flagLxc = True}
-
-fillLooseTasks :: Flags
-fillLooseTasks = noFlags {flagLooseTasks = True}
-
 instance Semigroup Flags where
   f1 <> f2 =
     Flags
@@ -165,37 +79,21 @@ instance Semigroup Flags where
       }
 
 instance Monoid Flags where
-  mempty = noFlags
-
-noFlags :: Flags
-noFlags =
-  Flags
-    { flagMem = False
-    , flagCom = False
-    , flagEnv = False
-    , flagUser = False
-    , flagGroup = False
-    , flagStatus = False
-    , flagStat = False
-    , flagArg = False
-    , flagCGroup = False
-    , flagSupGroup = False
-    , flagOOM = False
-    , flagNS = False
-    , flagSystemd = False
-    , flagLxc = False
-    , flagLooseTasks = False
-    }
-
-------------------------------------------------------------
--- Table filters
-
-data Filter
-  = NoFilter
-  | ByUids [CUid]
-  | ByPids [CPid]
-
-data TableConfig = TableConfig
-  { binaryFlags :: Flags
-  , tableFilter :: Filter
-  }
+  mempty =
+    Flags
+      { flagMem = False
+      , flagCom = False
+      , flagEnv = False
+      , flagUser = False
+      , flagGroup = False
+      , flagStatus = False
+      , flagStat = False
+      , flagArg = False
+      , flagCGroup = False
+      , flagSupGroup = False
+      , flagOOM = False
+      , flagNS = False
+      , flagSystemd = False
+      , flagLxc = False
+      , flagLooseTasks = False
+      }

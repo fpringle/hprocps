@@ -1,115 +1,11 @@
-{-# LANGUAGE CPP #-}
+module System.Proc.Bindings.Internal where
 
-module System.Proc.Internal
-  ( Proc (..)
-  , makeProc
-  , ProcInfo (..)
-  , fromProcC
-
-    -- * Field accessors
-  , taskId
-  , parentPid
-  , majDelta
-  , minDelta
-  , cpuUsagePercent
-  , processStateCode
-  , userModeCPUTime
-  , kernelModeCPUTime
-  , cumulativeUserModeCPUTime
-  , cumulativeKernelModeCPUTime
-  , startTimeInSeconds
-  , pendingSignalMask
-  , blockSignalMask
-  , ignoredSignalMask
-  , caughtSignalMask
-  , perTaskPendingSignals
-  , codeStartAddress
-  , codeEndAddress
-  , stackBottomAddress
-  , kernelStackPointer
-  , kernelInstructionPointer
-  , kernelWaitChannelAddress
-  , kernelSchedulingPriority
-  , niceLevel
-  , rss
-  , alarm
-  , totalVirtualMemInPages
-  , residentNonSwappedMemInPages
-  , sharedMemInPages
-  , textResidentSetInPages
-  , libraryResidentSetInPages
-  , dataAndStackResidentSetInPages
-  , dirtyPages
-  , vmSizeInKb
-  , vmLockedPagesInKb
-  , vmRssInKb
-  , vmRssAnonInKb
-  , vmRssFileBackedInKb
-  , vmRssSharedInKb
-  , vmDataSizeInKb
-  , vmStackSizeInKb
-  , vmSwapSizeInKb
-  , vmExeInKb
-  , vmTotalLibraryPagesInKb
-  , realTimePriority
-  , schedulingClass
-  , virtualMemoryInPages
-  , residentSetSizeLimit
-  , kernelFlags
-  , minorPageFaults
-  , majorPageFaults
-  , cumulativeMinorPageFaults
-  , cumulativeMajorPageFaults
-  , environment
-  , cmdline
-  , cgroup
-  , cgroupName
-  , supplementaryGids
-  , supplementaryGroupNames
-  , effectiveUserName
-  , realUserName
-  , savedUserName
-  , filesystemUserName
-  , realGroupName
-  , effectiveGroupname
-  , savedGroupName
-  , filesystemGroupName
-  , cmd
-  , processGroupId
-  , sessionId
-  , numberOfThreasds
-  , threadGroupId
-  , ttyNumber
-  , effectiveUserId
-  , effectiveGroupId
-  , realUserId
-  , realGroupId
-  , savedUserId
-  , savedGroupId
-  , filesystemUserId
-  , filesystemGroupId
-  , terminalProcessGroupId
-  , exitSignal
-  , cpu
-  , oomScore
-  , oomAdjustment
-  , namespaces
-  , systemdContainerName
-  , systemdSessionOwnerUid
-  , systemdLoginSessionSeat
-  , systemdLoginSessionId
-  , systemdSliceUnit
-  , systemdSystemUnitId
-  , systemdUserUnitId
-  , lxcContainerName
-  )
-where
-
+import Control.Exception
 import Foreign
 import Foreign.C.Types
 import GHC.Show
-import System.Proc.C
-import System.Proc.Error
+import System.Proc.Bindings.C
+import System.Proc.Bindings.Error
 
 -- Guaranteed to be non-null
 newtype Proc = UnsafeProc (Ptr ProcC)
@@ -118,6 +14,17 @@ makeProc :: Ptr ProcC -> Either ProcError Proc
 makeProc procPtr
   | procPtr == nullPtr = Left NullPtrError
   | otherwise = Right $ UnsafeProc procPtr
+
+fromProcC :: Ptr ProcC -> IO ProcInfo
+fromProcC ptr =
+  ProcInfo <$> readProcCInfo ptr
+
+withProcPtr :: IO (Ptr ProcC) -> (Ptr ProcC -> IO a) -> IO (Either ProcError a)
+withProcPtr open f =
+  bracket open freeProc $ \ptr ->
+    if ptr == nullPtr
+      then pure $ Left NullPtrError
+      else Right <$> f ptr
 
 newtype ProcInfo = ProcInfo {unProcInfo :: ProcInfo'}
 
@@ -238,10 +145,6 @@ instance Show ProcInfo where
           . showString (getField pInfo)
           . showCommaSpace
           . go rest
-
-fromProcC :: Ptr ProcC -> IO ProcInfo
-fromProcC ptr =
-  ProcInfo <$> readProcCInfo ptr
 
 taskId :: ProcInfo -> CInt
 taskId = procc_tid . unProcInfo

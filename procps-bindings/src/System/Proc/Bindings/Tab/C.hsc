@@ -3,12 +3,12 @@
 
 #include "proctab-handle.h"
 
-module System.Proc.Tab.C
+module System.Proc.Bindings.Tab.C
   ( ProcTabC
   , openProcTabSimple
   , openProcTabPids
   , openProcTabUids
-  , closeProcTab
+  , closeProcTabC
   )
 where
 
@@ -25,4 +25,4 @@ foreign import capi unsafe "openproctab_pids" openProcTabPids :: CInt -> Ptr CPi
 
 foreign import capi unsafe "openproctab_uids" openProcTabUids :: CInt -> Ptr CUid -> CInt -> IO (Ptr ProcTabC)
 
-foreign import capi unsafe "closeproctab" closeProcTab :: Ptr ProcTabC -> IO ()
+foreign import capi unsafe "closeproctab" closeProcTabC :: Ptr ProcTabC -> IO ()

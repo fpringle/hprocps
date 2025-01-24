@@ -4,15 +4,15 @@
 
 #include "proc-handle.h"
 
-module System.Proc.C
+module System.Proc.Bindings.C
   ( Proc' (..)
   , ProcC
   , ProcInfo'
   , SignalMask
   , Address
+  , freeProc
   , readProcCInfo
-  , readNextProc
-  , withProcPtr
+  , readNextProcC
   , readProcTabSimple
   , readProcTabPids
   , readProcTabUids
@@ -20,14 +20,12 @@ module System.Proc.C
   )
 where
 
-import Control.Exception
 import Data.Maybe
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
 import System.Posix.Types
-import System.Proc.Error
-import System.Proc.Tab.C
+import System.Proc.Bindings.Tab.C
 
 #if defined(k64test) || (defined(_ABIN32) && _MIPS_SIM == _ABIN32)
 type Address = CULLong
@@ -472,16 +470,9 @@ instance Storable ProcC where
       <*> (#peek proc_t, sd_uunit) ptr
       <*> (#peek proc_t, lxcname) ptr
 
-foreign import capi unsafe "read_proc_wrapper" readNextProc :: Ptr ProcTabC -> Ptr ProcC -> IO (Ptr ProcC)
+foreign import capi unsafe "read_proc_wrapper" readNextProcC :: Ptr ProcTabC -> Ptr ProcC -> IO (Ptr ProcC)
 
 foreign import capi unsafe "free_proc_wrapper" freeProc :: Ptr ProcC -> IO ()
-
-withProcPtr :: IO (Ptr ProcC) -> (Ptr ProcC -> IO a) -> IO (Either ProcError a)
-withProcPtr open f =
-  bracket open freeProc $ \ptr ->
-    if ptr == nullPtr
-    then pure $ Left NullPtrError
-    else Right <$> f ptr
 
 foreign import capi unsafe "readproctab_simple" readProcTabSimple :: CInt -> IO (Ptr (Ptr ProcC))
 

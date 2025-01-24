@@ -1,4 +1,4 @@
-module System.Proc.Error
+module System.Proc.Bindings.Error
   ( ProcError (..)
   )
 where
