@@ -15,7 +15,7 @@ module System.Proc
   , ProcTab
   , readNextProc
   , readNextProcMaybe
-  , readProcInfos
+  , readAllProcInfos
 
     -- * Regioned monad for resource safety
   , module System.Proc.Monad
@@ -89,5 +89,5 @@ readAllProcsThrow cfg = readAllProcs cfg >>= either throwProcErrorT pure . seque
 readNextProcInfo :: MonadIO m => ProcTab s -> m (Either ProcError B.ProcInfo)
 readNextProcInfo = liftIO . B.readNextProcInfo . unProcTab
 
-readProcInfos :: MonadIO m => TableConfig -> m [B.ProcInfo]
-readProcInfos = liftIO . B.readProcInfos
+readAllProcInfos :: MonadIO m => TableConfig -> m [B.ProcInfo]
+readAllProcInfos = liftIO . B.readAllProcInfos

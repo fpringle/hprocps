@@ -22,7 +22,7 @@ module System.Proc.Bindings
     -- * Process table
   , ProcTab
   , readNextProc
-  , readProcInfos
+  , readAllProcInfos
 
     -- * Field accessors
   , SignalMask
@@ -100,8 +100,8 @@ openAllProcs cfg =
 {- | Read all the 'ProcInfo's according to a 'TableConfig'.
 Errors are ignored.
 -}
-readProcInfos :: TableConfig -> IO [ProcInfo]
-readProcInfos = readProcTab' >=> readPtrArray0 >=> traverse (fmap ProcInfo . readProcCInfo)
+readAllProcInfos :: TableConfig -> IO [ProcInfo]
+readAllProcInfos = readProcTab' >=> readPtrArray0 >=> traverse (fmap ProcInfo . readProcCInfo)
 
 {- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
 Internal pointers will be freed after use.
