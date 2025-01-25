@@ -8,10 +8,20 @@ import System.Proc.Bindings.Error
 import System.Proc.Bindings.Tab.C
 import System.Proc.Bindings.Tab.Config
 
+{- | The proctab (process table) is a persistent data structure holding the information
+the library needs to read process information. While 'System.Proc.Bindings.Proc's are
+typically ephemeral, the 'ProcTab' is more long lived. Typically it will be created and
+populated by 'System.Proc.Bindings.Tab.openProcTab' (or 'System.Proc.Bindings.Tab.withProcTab', which handles memory management); the 'TableConfig'
+tells the underlying library what information we want to read, but no actual process information
+is read yet. We then query the 'ProcTab' for information about processes, using functions like
+'System.Proc.Bindings.readNextProc' or 'System.Proc.Bindings.readNextProcInfo'
+-}
 data ProcTab
   = UnsafeProcTab
-      -- Guaranteed to be non-null.
+      -- PROCTAB* pointer, guaranteed to be non-null.
       (Ptr ProcTabC)
+      -- A reusable proc_t pointer to save time allocating and freeing memory.
+      -- will be used as the second argument to the @readproc@ C function.
       (Ptr ProcC)
 
 withProcTabPtr' :: IO (Ptr ProcTabC) -> (Ptr ProcTabC -> IO a) -> IO (Either ProcError a)

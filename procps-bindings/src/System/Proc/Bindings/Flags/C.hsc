@@ -14,24 +14,59 @@ import Foreign.C.Types
 ------------------------------------------------------------
 -- Binary flags
 
+{- | What information do we want about the processes?
+
+This type will be translated into a C @int@ to be passed to the underlying library
+(see 'flagsAsInt').
+
+It's easiest to construct these using the 'Semigroup' instance:
+
+@
+myFlags :: 'Flags'
+myFlags =
+  'System.Proc.Bindings.Tab.Config.fillMem'
+    <> 'System.Proc.Bindings.Tab.Config.fillCom'
+    <> 'System.Proc.Bindings.Tab.Config.fillEnv'
+    <> 'System.Proc.Bindings.Tab.Config.fillUser'
+    <> 'System.Proc.Bindings.Tab.Config.fillGroup'
+@
+-}
 data Flags = Flags
-  { flagMem :: Bool
-  , flagCom :: Bool
-  , flagEnv :: Bool
-  , flagUser :: Bool
-  , flagGroup :: Bool
-  , flagStatus :: Bool
-  , flagStat :: Bool
-  , flagArg :: Bool
-  , flagCGroup :: Bool
-  , flagSupGroup :: Bool
-  , flagOOM :: Bool
-  , flagNS :: Bool
-  , flagSystemd :: Bool
-  , flagLxc :: Bool
-  , flagLooseTasks :: Bool
+  { -- | Read @\/proc\/#\/statm@?
+    flagMem :: Bool
+  , -- | Read @\/proc\/#\/cmdline@?
+    flagCom :: Bool
+  , -- | Read @\/proc\/#\/environ@?
+    flagEnv :: Bool
+  , -- | Resolve user id number -> user name?
+    flagUser :: Bool
+  , -- | Resolve group id number -> group name?
+    flagGroup :: Bool
+  , -- | Read @\/proc\/#\/status@?
+    flagStatus :: Bool
+  , -- | Read @\/proc\/#\/stat@?
+    flagStat :: Bool
+  , -- | Read @\/proc\/#\/cmdline@?
+    flagArg :: Bool
+  , -- | Read @\/proc\/#\/cgroup@?
+    flagCGroup :: Bool
+  , -- | Resolve supplementary group id -> group name?
+    flagSupGroup :: Bool
+  , -- | Read @\/proc\/#\/oom_{score,adj}@?
+    flagOOM :: Bool
+  , -- | Read @\/proc\/#\/ns/@?
+    flagNS :: Bool
+  , -- | Read systemd information?
+    flagSystemd :: Bool
+  , -- | Read LXC name, if possible?
+    flagLxc :: Bool
+  , -- | Treat threads as if they were processes?
+    flagLooseTasks :: Bool
   }
 
+{- | Translate our nice haskell 'Flags' type into a C @int@. Basically a bitwise @OR@ of
+the fields (see all the lines at the end of @readproc.h@ starting with @#define PROC_@).
+-}
 flagsAsInt :: Flags -> CInt
 flagsAsInt Flags {..} =
   foldl' f (0 :: CInt) bits

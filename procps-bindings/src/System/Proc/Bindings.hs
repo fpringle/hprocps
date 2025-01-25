@@ -2,20 +2,24 @@ module System.Proc.Bindings
   ( -- * Process handles
     Proc
   , closeProc
-  , openSelfProc
+
+    -- ** Read the current process
   , withSelfProc
-  , openAllProcs
-  , openAllProcsLenient
+  , openSelfProc
+
+    -- ** Read all processes
   , withAllProcs
   , withAllProcsEither
   , withAllProcsLenient
+  , openAllProcs
+  , openAllProcsLenient
 
-    -- ** Concrete process information
+    -- * Concrete process information
   , ProcInfo
   , procInfo
   , readNextProcInfo
 
-    -- ** Process table
+    -- * Process table
   , ProcTab
   , readNextProc
   , readProcInfos
@@ -48,10 +52,7 @@ import qualified System.Proc.Bindings.Internal as Internal
 import System.Proc.Bindings.Tab.Config
 import System.Proc.Bindings.Tab.Internal
 
-{- | Read concrete 'ProcInfo' from a 'Proc' handle.
-'ProcInfo' is just a normal Haskell datatype without any pointers going on, so you can
-do what you want with it.
--}
+-- | Read concrete 'ProcInfo' from a 'Proc' handle.
 procInfo :: Proc -> IO ProcInfo
 procInfo (Internal.UnsafeProc ptr) = Internal.fromProcC ptr
 
@@ -61,7 +62,9 @@ readNextProc (UnsafeProcTab procTabPtr procPtr') = do
   procPtr <- readNextProcC procTabPtr procPtr'
   pure $ Internal.makeProc procPtr
 
--- readNextProcInfo = readNextProc >=> traverse procInfo
+{- | Read the next 'ProcInfo' in the 'ProcTab'.
+Combines 'readNextProc' and 'procInfo' for convenience.
+-}
 readNextProcInfo :: ProcTab -> IO (Either ProcError ProcInfo)
 readNextProcInfo (UnsafeProcTab procTabPtr procPtr') = do
   procPtr <- readNextProcC procTabPtr procPtr'
@@ -133,6 +136,7 @@ withSelfProc f = do
 
 {- | Try to open a 'Proc' representing the current proces or task.
 It is the caller's responsibility to free the internal 'Ptr' once they're done with it.
+It's safer to use 'withSelfProc'.
 -}
 openSelfProc :: IO (Either ProcError Proc)
 openSelfProc = Internal.makeProc <$> readSelfProc

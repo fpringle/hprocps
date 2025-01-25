@@ -39,7 +39,7 @@ type SignalMask = Maybe String
 type SignalMask = CLLong
 #endif
 
-data Proc' string charArray stringList longList procPtr = Proc
+data Proc' string charArray stringList longList procPtr = Proc'
   { procc_tid :: CInt 
   , procc_ppid :: CInt 
   , procc_maj_delta :: CULong 
@@ -242,7 +242,7 @@ instance Storable ProcC where
   alignment _ = #alignment proc_t
   sizeOf _ = #size proc_t
 
-  poke ptr (Proc {..}) = do
+  poke ptr (Proc' {..}) = do
     (#poke proc_t, tid) ptr procc_tid
     (#poke proc_t, ppid) ptr procc_ppid
     (#poke proc_t, maj_delta) ptr procc_maj_delta
@@ -345,7 +345,7 @@ instance Storable ProcC where
     (#poke proc_t, lxcname) ptr procc_lxcname
 
   peek ptr =
-    Proc
+    Proc'
       <$> (#peek proc_t, tid) ptr
       <*> (#peek proc_t, ppid) ptr
       <*> (#peek proc_t, maj_delta) ptr
