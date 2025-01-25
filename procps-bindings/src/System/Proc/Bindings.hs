@@ -7,6 +7,8 @@ module System.Proc.Bindings
   , openAllProcs
   , openAllProcsLenient
   , withAllProcs
+  , withAllProcsEither
+  , withAllProcsLenient
 
     -- ** Concrete process information
   , ProcInfo
@@ -77,12 +79,14 @@ readPtrArray0 ptr
 {- | Read all the 'Proc's according to a 'TableConfig'.
 Errors are ignored.
 It is the caller's responsibility to free the internal 'Ptr's once they're done with them.
+It's safer to use 'withAllProcsLenient'.
 -}
 openAllProcsLenient :: TableConfig -> IO [Proc]
 openAllProcsLenient cfg = rights <$> openAllProcs cfg
 
 {- | Read all the 'Proc's according to a 'TableConfig'.
 It is the caller's responsibility to free the internal 'Ptr's once they're done with them.
+It's safer to use 'withAllProcs'.
 -}
 openAllProcs :: TableConfig -> IO [Either ProcError Proc]
 openAllProcs cfg =
@@ -97,11 +101,26 @@ readProcInfos :: TableConfig -> IO [ProcInfo]
 readProcInfos = readProcTab' >=> readPtrArray0 >=> traverse (fmap ProcInfo . readProcCInfo)
 
 {- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
+Internal pointers will be freed after use.
+-}
+withAllProcs :: TableConfig -> ([Either ProcError Proc] -> IO a) -> IO a
+withAllProcs cfg =
+  bracket (openAllProcs cfg) (traverse_ (traverse_ closeProc))
+
+{- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
+Any error reading one 'Proc' leads to an overall error.
+Internal pointers will be freed after use.
+-}
+withAllProcsEither :: TableConfig -> ([Proc] -> IO a) -> IO (Either ProcError a)
+withAllProcsEither cfg f =
+  bracket (openAllProcs cfg) (traverse_ (traverse_ closeProc)) $ traverse f . sequence
+
+{- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
 Errors are ignored.
 Internal pointers will be freed after use.
 -}
-withAllProcs :: TableConfig -> ([Proc] -> IO a) -> IO a
-withAllProcs cfg =
+withAllProcsLenient :: TableConfig -> ([Proc] -> IO a) -> IO a
+withAllProcsLenient cfg =
   bracket (openAllProcsLenient cfg) (traverse_ closeProc)
 
 {- | Bracketed access to a 'Proc' representing the current proces or task.
