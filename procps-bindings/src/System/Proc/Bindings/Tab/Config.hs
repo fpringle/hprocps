@@ -25,6 +25,9 @@ module System.Proc.Bindings.Tab.Config
   , fillSystemd
   , fillLxc
   , fillLooseTasks
+  , editCGroupAsSingleVector
+  , editCmdlineAsSingleVector
+  , editEnvironAsSingleVector
 
     -- ** Accessors
   , flagMem
@@ -42,6 +45,9 @@ module System.Proc.Bindings.Tab.Config
   , flagSystemd
   , flagLxc
   , flagLooseTasks
+  , flagEditCGroupSingleVector
+  , flagEditCmdlineSingleVector
+  , flagEditEnvironSingleVector
 
     -- * Util
   , branchTableConfig
@@ -160,3 +166,15 @@ fillLxc = noFlags {flagLxc = True}
 -- | Treat threads as if they were processes.
 fillLooseTasks :: Flags
 fillLooseTasks = noFlags {flagLooseTasks = True}
+
+-- | Edit @cgroup@ as a single vector.
+editCGroupAsSingleVector :: Flags
+editCGroupAsSingleVector = noFlags {flagEditCGroupSingleVector = True}
+
+-- | Edit @cmdline@ as a single vector.
+editCmdlineAsSingleVector :: Flags
+editCmdlineAsSingleVector = noFlags {flagEditCmdlineSingleVector = True}
+
+-- | Edit @environ@ as a single vector.
+editEnvironAsSingleVector :: Flags
+editEnvironAsSingleVector = noFlags {flagEditEnvironSingleVector = True}

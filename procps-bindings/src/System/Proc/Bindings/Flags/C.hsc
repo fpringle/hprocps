@@ -62,6 +62,12 @@ data Flags = Flags
     flagLxc :: Bool
   , -- | Treat threads as if they were processes?
     flagLooseTasks :: Bool
+  , -- | Edit @cgroup@ as a single vector?
+    flagEditCGroupSingleVector :: Bool
+  , -- | Edit @cmdline@ as a single vector?
+    flagEditCmdlineSingleVector :: Bool
+  , -- | Edit @environ@ as a single vector?
+    flagEditEnvironSingleVector :: Bool
   }
   deriving (Show, Eq)
 
@@ -92,6 +98,9 @@ flagsAsInt Flags {..} =
       , (flagSystemd, #{const PROC_FILLSYSTEMD})
       , (flagLxc, #{const PROC_FILL_LXC})
       , (flagLooseTasks, #{const PROC_LOOSE_TASKS})
+      , (flagEditCGroupSingleVector, #{const PROC_EDITCGRPCVT})
+      , (flagEditCmdlineSingleVector, #{const PROC_EDITCMDLCVT})
+      , (flagEditEnvironSingleVector, #{const PROC_EDITENVRCVT})
       ]
 
 instance Semigroup Flags where
@@ -112,6 +121,9 @@ instance Semigroup Flags where
       , flagSystemd = flagSystemd f1 || flagSystemd f2
       , flagLxc = flagLxc f1 || flagLxc f2
       , flagLooseTasks = flagLooseTasks f1 || flagLooseTasks f2
+      , flagEditCGroupSingleVector = flagEditCGroupSingleVector f1 || flagEditCGroupSingleVector f2
+      , flagEditCmdlineSingleVector = flagEditCmdlineSingleVector f1 || flagEditCmdlineSingleVector f2
+      , flagEditEnvironSingleVector = flagEditEnvironSingleVector f1 || flagEditEnvironSingleVector f2
       }
 
 instance Monoid Flags where
@@ -132,4 +144,7 @@ instance Monoid Flags where
       , flagSystemd = False
       , flagLxc = False
       , flagLooseTasks = False
+      , flagEditCGroupSingleVector = False
+      , flagEditCmdlineSingleVector = False
+      , flagEditEnvironSingleVector = False
       }
