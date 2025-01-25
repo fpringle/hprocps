@@ -63,6 +63,7 @@ data Flags = Flags
   , -- | Treat threads as if they were processes?
     flagLooseTasks :: Bool
   }
+  deriving (Show, Eq)
 
 {- | Translate our nice haskell 'Flags' type into a C @int@. Basically a bitwise @OR@ of
 the fields (see all the lines at the end of @readproc.h@ starting with @#define PROC_@).

@@ -62,6 +62,7 @@ data TableConfig = TableConfig
   { binaryFlags :: Flags
   , tableFilter :: Filter
   }
+  deriving (Show, Eq)
 
 branchTableConfig ::
   (CInt -> IO a) ->
@@ -91,6 +92,7 @@ data Filter
     ByUids [CUid]
   | -- | Filter process by process IDs
     ByPids [CPid]
+  deriving (Show, Eq)
 
 ------------------------------------------------------------
 -- Binary flags
