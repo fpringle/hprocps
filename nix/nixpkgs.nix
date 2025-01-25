@@ -33,6 +33,9 @@ let
       haskellPackages = prev.haskellPackages.override {
         overrides = haskell-overrides;
       };
+
+      # In Nixpkgs the library is called procps but pkg-config will search for libprocps
+      libprocps = final.procps;
     };
 in
 nixpkgs
