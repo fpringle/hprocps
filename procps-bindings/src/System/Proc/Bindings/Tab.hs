@@ -19,6 +19,7 @@ import System.Proc.Bindings.Tab.C
 import System.Proc.Bindings.Tab.Config
 import System.Proc.Bindings.Tab.Internal
 
+-- | Read information about a 'ProcTab'.
 getProcTabInfo :: ProcTab -> IO ProcTabInfo
 getProcTabInfo (UnsafeProcTab ptr _) = fromProcTabC ptr
 
@@ -45,6 +46,13 @@ closeProcTab (UnsafeProcTab procTabPtr procPtr) = do
   closeProcTabC procTabPtr
   unless (procPtr == nullPtr) $ free procPtr
 
+{- | Information about a 'ProcTab'. Most of this information is just a copy
+of the arguments passed to @openproc@ or @readproctab@.
+
+This in an "escape hatch": while we have to be careful managing the pointers
+underlying a 'ProcTab', a 'ProcTabInfo' is just a normal Haskell datatype without
+any of that stuff going on, so you can do what you want with it.
+-}
 data ProcTabInfo = ProcTabInfo
   { didFake :: Bool
   , pids :: [CPid]
@@ -63,6 +71,9 @@ fromProcTabC ptr = do
   path <- readProcTabPath ptr
   pure ProcTabInfo {..}
 
+{- | For convenience: read 'ProcTabInfo' according to a 'TableConfig', skipping all the C stuff
+in the middle.
+-}
 readProcTabInfo :: TableConfig -> IO (Either ProcError ProcTabInfo)
 readProcTabInfo cfg =
   withProcTabPtr cfg fromProcTabC

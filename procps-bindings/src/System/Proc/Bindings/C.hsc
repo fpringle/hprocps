@@ -27,12 +27,18 @@ import System.Posix.Types
 import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Tab.C
 
+{- | The reason we type alias this is because the procps library will use a different
+type to represent addresses depending on the system and some other C macro stuff.
+-}
 #if defined(k64test) || (defined(_ABIN32) && _MIPS_SIM == _ABIN32)
 type Address = CULLong
 #else
 type Address = CULong
 #endif
 
+{- | The reason we type alias this is because the @procps@ library will use a different
+type to represent signal masks depending on whether the @SIGNAL_STRING@ macro is defined.
+-}
 #ifdef SIGNAL_STRING
 type SignalMask = Maybe String
 #else

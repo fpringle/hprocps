@@ -70,6 +70,12 @@ data TableConfig = TableConfig
   }
   deriving (Show, Eq)
 
+{- | Case analysis on 'TableConfig'. The three arguments correspond to the three
+constructors of 'Filter'.
+
+Handles memory management and makes sure we pass the correct argument to
+@openproc@ or @readproctab@.
+-}
 branchTableConfig ::
   (CInt -> IO a) ->
   (CInt -> Ptr CPid -> IO a) ->
