@@ -19,6 +19,10 @@ module System.Proc
   , procInfo
   , readNextProcInfo
   , module System.Proc.Bindings.Info
+
+    -- * Re-exports
+  , module System.Proc.Bindings.Tab.Config
+  , module System.Proc.Bindings.Error
   )
 where
 
