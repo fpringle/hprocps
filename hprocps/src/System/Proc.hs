@@ -5,6 +5,7 @@ module System.Proc
   , readAllProcs
   , readAllProcsLenient
   , readAllProcsThrow
+  , releaseProc
 
     -- * Process table
   , ProcTab
@@ -42,7 +43,10 @@ there for more details.
 The only difference is the @s@ parameter. This plays the same role as it does in
 'Control.Monad.ST.ST' - see the documentation of 'RegionT' for more.
 -}
-newtype Proc s = UnsafeProc {unProc :: B.Proc}
+data Proc s = UnsafeProc
+  { unProc :: B.Proc
+  , procReleaseKey :: ReleaseKey
+  }
 
 -- | Read concrete 'ProcInfo' from a 'Proc' handle.
 procInfo :: MonadIO m => Proc s -> m B.ProcInfo
@@ -72,7 +76,7 @@ readNextProcEither (UnsafeProcTab _ pt) =
 
 -- | Open a 'Proc' representing the current proces or task.
 readSelfProc :: RegionM s (Proc s)
-readSelfProc = UnsafeProc <$> allocateMEither B.openSelfProc B.closeProc
+readSelfProc = uncurry (flip UnsafeProc) <$> allocateMEither B.openSelfProc B.closeProc
 
 resourceMask_ :: MonadResource m => ResourceT IO b -> m b
 resourceMask_ rio = resourceMask $ const rio
@@ -85,8 +89,8 @@ readAllProcsLenient cfg = resourceMask_ $ do
   procs <- liftIO $ B.openAllProcsLenient cfg
 
   forM procs $ \proc -> do
-    _key <- register (B.closeProc proc)
-    pure $ UnsafeProc proc
+    key <- register (B.closeProc proc)
+    pure $ UnsafeProc proc key
 
 -- | Read all the 'Proc's according to a 'TableConfig'.
 readAllProcs :: TableConfig -> RegionM s [Either ProcError (Proc s)]
@@ -96,8 +100,8 @@ readAllProcs cfg = resourceMask_ $ do
   forM procs $ \case
     Left err -> pure $ Left err
     Right proc -> do
-      _key <- register (B.closeProc proc)
-      pure $ Right $ UnsafeProc proc
+      key <- register (B.closeProc proc)
+      pure $ Right $ UnsafeProc proc key
 
 {- | Read all the 'Proc's according to a 'TableConfig'.
 Any errors are thrown using 'throwProcErrorT'.
@@ -111,8 +115,8 @@ readAllProcsThrow cfg = do
       Left err -> pure $ Left err
       Right procs ->
         fmap Right . forM procs $ \proc -> do
-          _key <- register (B.closeProc proc)
-          pure $ UnsafeProc proc
+          key <- register (B.closeProc proc)
+          pure $ UnsafeProc proc key
 
   case eProcs of
     Left err -> throwProcErrorT err
@@ -127,3 +131,9 @@ Errors are ignored.
 -}
 readAllProcInfos :: MonadIO m => TableConfig -> m [B.ProcInfo]
 readAllProcInfos = liftIO . B.readAllProcInfos
+
+{- | Release a 'Proc' early. Note that this should be done with care, since it makes it possible to
+try to use memory after it's been freed, which is the whole point of this whole regioned monad thing.
+-}
+releaseProc :: Proc s -> RegionM s ()
+releaseProc = release . procReleaseKey

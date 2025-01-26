@@ -67,14 +67,14 @@ throwProcErrorT = RegionT . throwProcErrorM
 {-# INLINE throwProcErrorT #-}
 
 -- | Allocate a resource in the t'RegionM' monad.
-allocateM :: MonadResource m => IO a -> (a -> IO ()) -> m a
-allocateM open close = snd <$> allocate open close
+allocateM :: MonadResource m => IO a -> (a -> IO ()) -> m (ReleaseKey, a)
+allocateM = allocate
 
 {- | Allocate a resource in the t'RegionM' monad, with the option of failure during allocation.
 
 Allocation failures are re-thrown using 'throwProcErrorT'.
 -}
-allocateMEither :: IO (Either ProcError a) -> (a -> IO ()) -> RegionM s a
+allocateMEither :: IO (Either ProcError a) -> (a -> IO ()) -> RegionM s (ReleaseKey, a)
 allocateMEither open close =
   liftIO open >>= \case
     Left err -> throwProcErrorT err

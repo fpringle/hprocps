@@ -2,6 +2,7 @@ module System.Proc.Tab
   ( ProcTab
   , newProcTab
   , getProcTabInfo
+  , releaseProcTab
   , readProcTabInfo
   )
 where
