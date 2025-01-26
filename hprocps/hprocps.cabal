@@ -24,36 +24,12 @@ common deps
 
 common extensions
   default-extensions:
-    BangPatterns
-    DeriveGeneric
-    DerivingVia 
-    FlexibleContexts
     FlexibleInstances
-    GADTs
-    InstanceSigs
     LambdaCase
-    MultiParamTypeClasses
-    NamedFieldPuns
-    OverloadedStrings
-    PackageImports
     RecordWildCards
     ScopedTypeVariables
-    TupleSections
-    TypeApplications
-    ViewPatterns
-    RankNTypes
-    UndecidableInstances
     KindSignatures
-    DataKinds
-    StandaloneKindSignatures
-    AllowAmbiguousTypes
-    DefaultSignatures
-    PolyKinds
-    TypeFamilies
-    ConstraintKinds
-    StandaloneDeriving
-    Arrows
-    TypeOperators
+    RankNTypes
 
 library
   import:
