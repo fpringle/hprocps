@@ -6,12 +6,7 @@ module System.Proc
   , readAllProcsLenient
   , readAllProcsThrow
 
-    -- ** Concrete process information
-  , B.ProcInfo
-  , procInfo
-  , readNextProcInfo
-
-    -- ** Process table
+    -- * Process table
   , ProcTab
   , readNextProc
   , readNextProcMaybe
@@ -20,8 +15,10 @@ module System.Proc
     -- * Regioned monad for resource safety
   , module System.Proc.Monad
 
-    -- * Field accessors
-  , module Export
+    -- * Concrete process information
+  , procInfo
+  , readNextProcInfo
+  , module System.Proc.Bindings.Info
   )
 where
 
@@ -29,23 +26,9 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class
 import Control.Monad.Trans.Except
 import Data.Foldable
-import System.Proc.Bindings as Export hiding
-  ( Proc
-  , ProcInfo
-  , ProcTab
-  , closeProc
-  , openAllProcs
-  , openAllProcsLenient
-  , openSelfProc
-  , procInfo
-  , readNextProc
-  , readNextProcInfo
-  , readProcInfos
-  , withAllProcs
-  , withSelfProc
-  )
 import qualified System.Proc.Bindings as B
 import System.Proc.Bindings.Error
+import System.Proc.Bindings.Info
 import System.Proc.Bindings.Tab.Config
 import System.Proc.Monad hiding (RegionT)
 import System.Proc.Monad.Internal (RegionT (..))

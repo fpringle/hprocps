@@ -14,20 +14,15 @@ module System.Proc.Bindings
   , openAllProcs
   , openAllProcsLenient
 
-    -- * Concrete process information
-  , ProcInfo
-  , procInfo
-  , readNextProcInfo
-
     -- * Process table
   , ProcTab
   , readNextProc
   , readAllProcInfos
 
-    -- * Field accessors
-  , SignalMask
-  , Address
-  , module Export
+    -- * Concrete process information
+  , procInfo
+  , readNextProcInfo
+  , module System.Proc.Bindings.Info
   )
 where
 
@@ -40,14 +35,9 @@ import Foreign
 import System.Proc.Bindings.C
 import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Error
-import System.Proc.Bindings.Internal (Proc, ProcInfo (..))
-import System.Proc.Bindings.Internal as Export hiding
-  ( Proc (..)
-  , ProcInfo (..)
-  , fromProcC
-  , makeProc
-  , withProcPtr
-  )
+import System.Proc.Bindings.Info
+import System.Proc.Bindings.Info.Internal (ProcInfo (..))
+import System.Proc.Bindings.Internal (Proc)
 import qualified System.Proc.Bindings.Internal as Internal
 import System.Proc.Bindings.Tab.Config
 import System.Proc.Bindings.Tab.Internal
