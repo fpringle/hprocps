@@ -26,16 +26,15 @@ module System.Proc
   )
 where
 
+import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Class
-import Control.Monad.Trans.Except
+import Control.Monad.Trans.Resource
 import Data.Foldable
 import qualified System.Proc.Bindings as B
 import System.Proc.Bindings.Error
 import System.Proc.Bindings.Info
 import System.Proc.Bindings.Tab.Config
 import System.Proc.Monad
-import System.Proc.Monad.Internal (RegionT (..))
 import System.Proc.Tab.Internal
 
 {- | This is the equivalent of 'B.Proc' from @procps-bindings@, see the documentation
@@ -52,23 +51,24 @@ procInfo = liftIO . B.procInfo . unProc
 
 -- | Read the next 'Proc' from the 'ProcTab'.
 readNextProc :: ProcTab s -> RegionM s (Proc s)
-readNextProc =
-  fmap UnsafeProc . RegionT . ProcM . ExceptT . lift . B.readNextProc . unProcTab
+readNextProc = readNextProcEither >=> either throwProcErrorT pure
 
 -- | Read the next 'Proc' from the 'ProcTab', if there is one. Otherwise return 'Nothing'.
 readNextProcMaybe :: ProcTab s -> RegionM s (Maybe (Proc s))
-readNextProcMaybe =
-  fmap (fmap UnsafeProc . rightToMaybe)
-    . RegionT
-    . ProcM
-    . lift
-    . lift
-    . B.readNextProc
-    . unProcTab
+readNextProcMaybe pt = rightToMaybe <$> readNextProcEither pt
 
 rightToMaybe :: Either e a -> Maybe a
 rightToMaybe = either (const Nothing) Just
 {-# INLINE rightToMaybe #-}
+
+-- DRY
+readNextProcEither :: ProcTab s -> RegionM s (Either ProcError (Proc s))
+readNextProcEither (UnsafeProcTab pt) =
+  liftIO (B.readNextProc pt) >>= \case
+    Left err -> pure $ Left err
+    Right proc -> do
+      _key <- register $ B.closeProc proc
+      pure $ Right $ UnsafeProc proc
 
 -- | Open a 'Proc' representing the current proces or task.
 readSelfProc :: RegionM s (Proc s)
