@@ -1,1 +1,1 @@
-import ./hprocps.nix
+import ./hprocps.nix { }

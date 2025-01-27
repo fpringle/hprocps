@@ -1,5 +1,6 @@
+args@{ ... }:
 let
-  nixpkgs = import ./nix/nixpkgs.nix;
+  nixpkgs = import ./nix/nixpkgs.nix args;
   packages = import ./nix/packages.nix;
 
   mapAttrs = nixpkgs.lib.mapAttrs;

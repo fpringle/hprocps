@@ -1,9 +1,10 @@
-{ packages ? ""
+args@{ packages ? ""
+, ...
 }:
 let
-  nixpkgs = import ./nix/nixpkgs.nix;
+  nixpkgs = import ./nix/nixpkgs.nix args;
   pre-commit-check = import ./nix/pre-commit.nix;
-  monorepo = import ./hprocps.nix;
+  monorepo = import ./hprocps.nix args;
   allPackages = builtins.attrNames monorepo;
   shell-packages =
     if packages == ""

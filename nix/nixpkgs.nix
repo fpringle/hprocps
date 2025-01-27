@@ -1,6 +1,12 @@
 let
   sources = import ./sources.nix;
-  nixpkgs = import sources.nixpkgs { overlays = [ overlay ]; };
+in
+{ ghc-version ? null
+, nixpkgs-src ? sources.nixpkgs
+, ...
+}:
+let
+  nixpkgs = import nixpkgs-src { overlays = [ overlay ]; };
   packages = import ./packages.nix;
 
   gitignore = nixpkgs.nix-gitignore.gitignoreSourcePure [ ../.gitignore ];
@@ -26,11 +32,16 @@ let
             in doCheck pkg;
         in
         builtins.mapAttrs makePackage packages // packageOverrides;
+
+      base-pkgs =
+        if ghc-version == null
+        then prev.haskellPackages
+        else prev.haskell.packages.${ghc-version};
     in
     {
       # This will become the main package set for the project. In a `nix-shell`,
       # this is what we'll have access to.
-      haskellPackages = prev.haskellPackages.override {
+      haskellPackages = base-pkgs.override {
         overrides = haskell-overrides;
       };
 
