@@ -21,9 +21,17 @@ flag pkg-config
   manual:      False
   description: Use @pkg-config@ executable to find the procps C library.
 
+flag debug
+  default:     False
+  manual:      True
+  description: Compile with symbols so we can debug in GDB.
+
 common warnings
-  ghc-options: -g3 -Wall -Wno-unused-do-bind -finfo-table-map
-  cc-options: -g -ggdb -Wno-int-conversion -Wno-implicit-function-declaration
+  ghc-options: -Wall -Wno-unused-do-bind
+  cc-options: -Wno-int-conversion -Wno-implicit-function-declaration
+  if flag(debug)
+    ghc-options: -g3 -finfo-table-map
+    cc-options: -g -ggdb
 
 common deps
   build-depends:
