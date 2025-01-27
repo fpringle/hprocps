@@ -12,8 +12,7 @@ homepage:           https://github.com/fpringle/hprocps
 build-type:         Simple
 
 common warnings
-  ghc-options: -g3 -Wall -Wno-unused-do-bind -finfo-table-map
-  cc-options: -g -ggdb -Wno-int-conversion -Wno-implicit-function-declaration
+  ghc-options: -Wall -Wno-unused-do-bind
 
 common deps
   build-depends:
