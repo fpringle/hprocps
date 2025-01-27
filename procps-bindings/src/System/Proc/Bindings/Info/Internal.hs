@@ -1,5 +1,6 @@
 module System.Proc.Bindings.Info.Internal where
 
+import Data.Foldable
 import Foreign.C.Types
 import GHC.Show
 import System.Proc.Bindings.C
@@ -11,6 +12,110 @@ This is the "escape hatch" from all the funky C stuff, memory management, bracke
 do what you want with it.
 -}
 newtype ProcInfo = ProcInfo {unProcInfo :: ProcInfo'}
+
+instance Eq ProcInfo where
+  pi1 == pi2 = foldl' (&&) True fields
+    where
+      eqOn :: Eq a => (ProcInfo -> a) -> Bool
+      eqOn f = f pi1 == f pi2
+
+      fields =
+        [ eqOn taskId
+        , eqOn parentPid
+        , eqOn majDelta
+        , eqOn minDelta
+        , eqOn cpuUsagePercent
+        , eqOn processStateCode
+        , eqOn userModeCPUTime
+        , eqOn kernelModeCPUTime
+        , eqOn cumulativeUserModeCPUTime
+        , eqOn cumulativeKernelModeCPUTime
+        , eqOn startTimeInSeconds
+        , eqOn pendingSignalMask
+        , eqOn blockSignalMask
+        , eqOn ignoredSignalMask
+        , eqOn caughtSignalMask
+        , eqOn perTaskPendingSignals
+        , eqOn codeStartAddress
+        , eqOn codeEndAddress
+        , eqOn stackBottomAddress
+        , eqOn kernelStackPointer
+        , eqOn kernelInstructionPointer
+        , eqOn kernelWaitChannelAddress
+        , eqOn kernelSchedulingPriority
+        , eqOn niceLevel
+        , eqOn rss
+        , eqOn alarm
+        , eqOn totalVirtualMemInPages
+        , eqOn residentNonSwappedMemInPages
+        , eqOn sharedMemInPages
+        , eqOn textResidentSetInPages
+        , eqOn libraryResidentSetInPages
+        , eqOn dataAndStackResidentSetInPages
+        , eqOn dirtyPages
+        , eqOn vmSizeInKb
+        , eqOn vmLockedPagesInKb
+        , eqOn vmRssInKb
+        , eqOn vmRssAnonInKb
+        , eqOn vmRssFileBackedInKb
+        , eqOn vmRssSharedInKb
+        , eqOn vmDataSizeInKb
+        , eqOn vmStackSizeInKb
+        , eqOn vmSwapSizeInKb
+        , eqOn vmExeInKb
+        , eqOn vmTotalLibraryPagesInKb
+        , eqOn realTimePriority
+        , eqOn schedulingClass
+        , eqOn virtualMemoryInPages
+        , eqOn residentSetSizeLimit
+        , eqOn kernelFlags
+        , eqOn minorPageFaults
+        , eqOn majorPageFaults
+        , eqOn cumulativeMinorPageFaults
+        , eqOn cumulativeMajorPageFaults
+        , eqOn environment
+        , eqOn cmdline
+        , eqOn cgroup
+        , eqOn cgroupName
+        , eqOn supplementaryGids
+        , eqOn supplementaryGroupNames
+        , eqOn effectiveUserName
+        , eqOn realUserName
+        , eqOn savedUserName
+        , eqOn filesystemUserName
+        , eqOn realGroupName
+        , eqOn effectiveGroupname
+        , eqOn savedGroupName
+        , eqOn filesystemGroupName
+        , eqOn cmd
+        , eqOn processGroupId
+        , eqOn sessionId
+        , eqOn numberOfThreasds
+        , eqOn threadGroupId
+        , eqOn ttyNumber
+        , eqOn effectiveUserId
+        , eqOn effectiveGroupId
+        , eqOn realUserId
+        , eqOn realGroupId
+        , eqOn savedUserId
+        , eqOn savedGroupId
+        , eqOn filesystemUserId
+        , eqOn filesystemGroupId
+        , eqOn terminalProcessGroupId
+        , eqOn exitSignal
+        , eqOn cpu
+        , eqOn oomScore
+        , eqOn oomAdjustment
+        , eqOn namespaces
+        , eqOn systemdContainerName
+        , eqOn systemdSessionOwnerUid
+        , eqOn systemdLoginSessionSeat
+        , eqOn systemdLoginSessionId
+        , eqOn systemdSliceUnit
+        , eqOn systemdSystemUnitId
+        , eqOn systemdUserUnitId
+        , eqOn lxcContainerName
+        ]
 
 instance Show ProcInfo where
   showsPrec d pInfo =
