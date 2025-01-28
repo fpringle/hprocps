@@ -18,6 +18,7 @@ module System.Proc.Bindings
   , ProcTab
   , readNextProc
   , readAllProcInfos
+  , readAllProcInfosE
 
     -- * Concrete process information
   , procInfo
@@ -77,31 +78,47 @@ Errors are ignored.
 It is the caller's responsibility to free the internal 'Ptr's once they're done with them.
 It's safer to use 'withAllProcsLenient'.
 -}
-openAllProcsLenient :: HasCallStack => TableConfig -> IO [Proc]
-openAllProcsLenient cfg = rights <$> openAllProcs cfg
+openAllProcsLenient :: HasCallStack => TableConfig -> IO (Ptr (Ptr ProcC), [Ptr ProcC], [Proc])
+openAllProcsLenient cfg = do
+  (ptrArray, ptrs, procs) <- openAllProcs cfg
+  pure (ptrArray, ptrs, rights procs)
 
 {- | Read all the 'Proc's according to a 'TableConfig'.
 It is the caller's responsibility to free the internal 'Ptr's once they're done with them.
 It's safer to use 'withAllProcs'.
 -}
-openAllProcs :: HasCallStack => TableConfig -> IO [Either ProcError Proc]
-openAllProcs cfg =
-  readProcTab' cfg
-    >>= readPtrArray0
-    <&> fmap Internal.makeProc
+openAllProcs :: HasCallStack => TableConfig -> IO (Ptr (Ptr ProcC), [Ptr ProcC], [Either ProcError Proc])
+openAllProcs cfg = do
+  ptrArray <- readProcTab' cfg
+  ptrs <- readPtrArray0 ptrArray
+  pure (ptrArray, ptrs, Internal.makeProc <$> ptrs)
 
 {- | Read all the 'ProcInfo's according to a 'TableConfig'.
 Errors are ignored.
 -}
 readAllProcInfos :: HasCallStack => TableConfig -> IO [ProcInfo]
-readAllProcInfos = readProcTab' >=> readPtrArray0 >=> traverse (fmap ProcInfo . readProcCInfo)
+readAllProcInfos cfg =
+  withAllProcsLenient cfg $ traverse procInfo
+
+readAllProcInfosE :: HasCallStack => TableConfig -> IO [Either ProcError ProcInfo]
+readAllProcInfosE cfg =
+  withAllProcs cfg $ traverse (traverse procInfo)
+
+withAllProcs' :: (TableConfig -> IO (Ptr a1, [Ptr a2], [a3])) -> (a3 -> IO b) -> TableConfig -> ([a3] -> IO c) -> IO c
+withAllProcs' open close' cfg f =
+  bracket (open cfg) close $ \(_, _, procs) -> f procs
+  where
+    close (ptrPtr, _ptrs, procs) = do
+      free ptrPtr
+      -- traverse_ free ptrs
+      traverse_ close' procs
 
 {- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
 Internal pointers will be freed after use.
 -}
 withAllProcs :: HasCallStack => TableConfig -> ([Either ProcError Proc] -> IO a) -> IO a
-withAllProcs cfg =
-  bracket (openAllProcs cfg) (traverse_ (traverse_ closeProc))
+withAllProcs =
+  withAllProcs' openAllProcs (traverse_ closeProc)
 
 {- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
 Any error reading one 'Proc' leads to an overall error.
@@ -109,15 +126,15 @@ Internal pointers will be freed after use.
 -}
 withAllProcsEither :: HasCallStack => TableConfig -> ([Proc] -> IO a) -> IO (Either ProcError a)
 withAllProcsEither cfg f =
-  bracket (openAllProcs cfg) (traverse_ (traverse_ closeProc)) $ traverse f . sequence
+  withAllProcs' openAllProcs (traverse_ closeProc) cfg $ traverse f . sequence
 
 {- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
 Errors are ignored.
 Internal pointers will be freed after use.
 -}
 withAllProcsLenient :: HasCallStack => TableConfig -> ([Proc] -> IO a) -> IO a
-withAllProcsLenient cfg =
-  bracket (openAllProcsLenient cfg) (traverse_ closeProc)
+withAllProcsLenient =
+  withAllProcs' openAllProcsLenient closeProc
 
 {- | Bracketed access to a 'Proc' representing the current proces or task.
 The internal pointer will be freed after use.

@@ -20,6 +20,7 @@ module System.Proc.Bindings.C
   )
 where
 
+-- import Debug.Breakpoint
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
@@ -157,7 +158,7 @@ data Proc' string charArray stringList longList procPtr = Proc'
   , procc_lxcname :: string
   }
 
-type ProcC = Proc' CString CString (Ptr CString) (Ptr CLong) (Ptr ())
+type ProcC = Proc' CString () (Ptr CString) (Ptr CLong) (Ptr ())
 
 type ProcInfo' = Proc' (Maybe String) (Maybe String) [String] [CLong] ()
 
