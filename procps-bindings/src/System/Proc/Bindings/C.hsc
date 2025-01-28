@@ -23,6 +23,7 @@ where
 import Foreign
 import Foreign.C.String
 import Foreign.C.Types
+import GHC.Stack
 import System.Posix.Types
 import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Tab.C
@@ -164,8 +165,9 @@ readLongList :: Ptr CLong -> IO [CLong]
 readLongList = readNullTermArray
 {-# INLINE readLongList #-}
 
-readProcCInfo :: Ptr ProcC -> IO ProcInfo'
+readProcCInfo :: HasCallStack => Ptr ProcC -> IO ProcInfo'
 readProcCInfo pcPtr = do
+  xprintf $ "readProcCInfo " <> show pcPtr
   pc <- peek pcPtr
   new_cgname <- readStringMaybe $ procc_cgname pc
   new_supgid <- readStringMaybe $ procc_supgid pc

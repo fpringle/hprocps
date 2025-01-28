@@ -56,7 +56,9 @@ where
 
 import Foreign
 import Foreign.C.Types
+import GHC.Stack
 import System.Posix.Types
+import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Flags.C
 
 {- | This type represents our preference of what processes we want information about,
@@ -77,16 +79,23 @@ Handles memory management and makes sure we pass the correct argument to
 @openproc@ or @readproctab@.
 -}
 branchTableConfig ::
+  HasCallStack =>
   (CInt -> IO a) ->
   (CInt -> Ptr CPid -> IO a) ->
   (CInt -> Ptr CUid -> CInt -> IO a) ->
   (TableConfig -> IO a)
-branchTableConfig simple onPids onUids (TableConfig flags tabFilter) = case tabFilter of
-  NoFilter -> simple flagsInt
-  ByPids pids ->
-    withArray0 0 pids $ \pidPtr -> onPids flagsInt pidPtr
-  ByUids uids ->
-    withArrayLen uids $ \nuid uidPtr -> onUids flagsInt uidPtr (fromIntegral nuid)
+branchTableConfig simple onPids onUids (TableConfig flags tabFilter) = do
+  xprintf "branchTableConfig"
+  case tabFilter of
+    NoFilter -> simple flagsInt
+    ByPids pids ->
+      withArray0 0 pids $ \pidPtr -> do
+        xprintf $ "PID pointer: " <> show pidPtr
+        onPids flagsInt pidPtr
+    ByUids uids ->
+      withArrayLen uids $ \nuid uidPtr -> do
+        xprintf $ "UID pointer: " <> show uidPtr
+        onUids flagsInt uidPtr (fromIntegral nuid)
   where
     flagsInt = flagsAsInt flags
 

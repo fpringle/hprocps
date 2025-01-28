@@ -11,8 +11,10 @@ copyright:          Copyright(c) Frederick Pringle 2025
 homepage:           https://github.com/fpringle/hprocps
 build-type:         Simple
 extra-source-files:
+  , cbits/util.h
   , cbits/proctab-handle.h
   , cbits/proc-handle.h
+  , cbits/util.c
   , cbits/proctab-handle.c
   , cbits/proc-handle.c
 
@@ -31,7 +33,8 @@ common warnings
   cc-options: -Wno-int-conversion -Wno-implicit-function-declaration
   if flag(debug)
     ghc-options: -g3 -finfo-table-map
-    cc-options: -g -ggdb
+    cc-options: -g -ggdb -DDEBUG
+    cpp-options: -DDEBUG
 
 common deps
   build-depends:
@@ -73,11 +76,14 @@ library
     extra-libraries: procps
 
   include-dirs:     cbits
-  includes:         cbits/proctab-handle.h
+  includes:         cbits/util.h
+                    cbits/proctab-handle.h
                     cbits/proc-handle.h
-  install-includes: cbits/proctab-handle.h
+  install-includes: cbits/util.h
+                    cbits/proctab-handle.h
                     cbits/proc-handle.h
-  c-sources:        cbits/proctab-handle.c
+  c-sources:        cbits/util.c
+                    cbits/proctab-handle.c
                     cbits/proc-handle.c
   build-tool-depends:  hsc2hs:hsc2hs
 

@@ -1,11 +1,15 @@
+{-# LANGUAGE CPP #-}
+
 module System.Proc.Bindings.C.Utils where
 
+import Data.List
 import Data.Maybe
 import Foreign.C.String
 import Foreign.Marshal.Array
 import Foreign.Marshal.Utils
 import Foreign.Ptr
 import Foreign.Storable
+import GHC.Stack
 import System.Proc.Bindings.Error
 
 eitherPeek :: (Ptr a -> IO b) -> Ptr a -> IO (Either ProcError b)
@@ -36,3 +40,18 @@ readNullTermArray ptr = fromMaybe [] <$> readNullTermArrayMaybe ptr
 
 readNullTermArrayMaybe :: (Storable a, Num a, Eq a) => Ptr a -> IO (Maybe [a])
 readNullTermArrayMaybe = maybePeek $ peekArray0 0
+
+fmtCallStack :: CallStack -> String
+fmtCallStack = intercalate " > " . reverse . fmap fst . getCallStack
+
+xprintf :: HasCallStack => String -> IO ()
+#ifdef DEBUG
+xprintf s = putStrLn $ "[H] " <> s <> "      - " <> fmtCallStack (popCallStack callStack)
+#else
+xprintf _ = pure ()
+#endif
+
+xreturn :: (HasCallStack, Show a) => a -> IO a
+xreturn a = do
+  xprintf $ "  return " <> show a
+  pure a
