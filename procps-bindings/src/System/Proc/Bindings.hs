@@ -1,66 +1,141 @@
 module System.Proc.Bindings
-  ( -- * Process handles
+  ( -- * Process information
     Proc
-  , closeProc
 
     -- ** Read the current process
-  , withSelfProc
-  , openSelfProc
+  , System.Proc.Bindings.readSelfProc
 
     -- ** Read all processes
-  , withAllProcs
-  , withAllProcsEither
-  , withAllProcsLenient
-  , openAllProcs
-  , openAllProcsLenient
+  , readAllProcs
+  , readAllProcsLenient
 
     -- * Process table
   , ProcTab
   , readNextProc
-  , readAllProcInfos
 
     -- * Concrete process information
-  , procInfo
-  , readNextProcInfo
-  , module System.Proc.Bindings.Info
+  , taskId
+  , parentPid
+  , majDelta
+  , minDelta
+  , cpuUsagePercent
+  , processStateCode
+  , userModeCPUTime
+  , kernelModeCPUTime
+  , cumulativeUserModeCPUTime
+  , cumulativeKernelModeCPUTime
+  , startTimeInSeconds
+  , SignalMask
+  , pendingSignalMask
+  , blockSignalMask
+  , ignoredSignalMask
+  , caughtSignalMask
+  , perTaskPendingSignals
+  , Address
+  , codeStartAddress
+  , codeEndAddress
+  , stackBottomAddress
+  , kernelStackPointer
+  , kernelInstructionPointer
+  , kernelWaitChannelAddress
+  , kernelSchedulingPriority
+  , niceLevel
+  , rss
+  , alarm
+  , totalVirtualMemInPages
+  , residentNonSwappedMemInPages
+  , sharedMemInPages
+  , textResidentSetInPages
+  , libraryResidentSetInPages
+  , dataAndStackResidentSetInPages
+  , dirtyPages
+  , vmSizeInKb
+  , vmLockedPagesInKb
+  , vmRssInKb
+  , vmRssAnonInKb
+  , vmRssFileBackedInKb
+  , vmRssSharedInKb
+  , vmDataSizeInKb
+  , vmStackSizeInKb
+  , vmSwapSizeInKb
+  , vmExeInKb
+  , vmTotalLibraryPagesInKb
+  , realTimePriority
+  , schedulingClass
+  , virtualMemoryInPages
+  , residentSetSizeLimit
+  , kernelFlags
+  , minorPageFaults
+  , majorPageFaults
+  , cumulativeMinorPageFaults
+  , cumulativeMajorPageFaults
+  , environment
+  , cmdline
+  , cgroup
+  , cgroupName
+  , supplementaryGids
+  , supplementaryGroupNames
+  , effectiveUserName
+  , realUserName
+  , savedUserName
+  , filesystemUserName
+  , realGroupName
+  , effectiveGroupname
+  , savedGroupName
+  , filesystemGroupName
+  , cmd
+  , processGroupId
+  , sessionId
+  , numberOfThreasds
+  , threadGroupId
+  , ttyNumber
+  , effectiveUserId
+  , effectiveGroupId
+  , realUserId
+  , realGroupId
+  , savedUserId
+  , savedGroupId
+  , filesystemUserId
+  , filesystemGroupId
+  , terminalProcessGroupId
+  , exitSignal
+  , cpu
+  , oomScore
+  , oomAdjustment
+  , namespaces
+  , systemdContainerName
+  , systemdSessionOwnerUid
+  , systemdLoginSessionSeat
+  , systemdLoginSessionId
+  , systemdSliceUnit
+  , systemdSystemUnitId
+  , systemdUserUnitId
+  , lxcContainerName
   )
 where
 
 import Control.Exception
-import Control.Monad
 import Data.Either
-import Data.Foldable
 import Foreign
 import GHC.Stack
-import System.Proc.Bindings.C
+import System.Proc.Bindings.C as C
 import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Error
-import System.Proc.Bindings.Info
-import System.Proc.Bindings.Internal (Proc)
-import qualified System.Proc.Bindings.Internal as Internal
 import System.Proc.Bindings.Tab
 import System.Proc.Bindings.Tab.Config
 import System.Proc.Bindings.Tab.Internal
 
--- | Read concrete 'ProcInfo' from a 'Proc' handle.
-procInfo :: HasCallStack => Proc -> IO ProcInfo
-procInfo (Internal.UnsafeProc ptr) = Internal.fromProcC ptr
+bracketReadProc :: HasCallStack => IO (Ptr Proc) -> IO (Either ProcError Proc)
+bracketReadProc open =
+  bracket open freeProc $ eitherPeek peekProc
 
 -- | Read the next 'Proc' from the 'ProcTab'.
 readNextProc :: HasCallStack => ProcTab -> IO (Either ProcError Proc)
 readNextProc (UnsafeProcTab procTabPtr procPtr') = do
-  procPtr <- readNextProcC procTabPtr procPtr'
-  pure $ Internal.makeProc procPtr
+  readNextProcPtr procTabPtr procPtr'
+    >>= eitherPeek peekProc
 
-{- | Read the next 'ProcInfo' in the 'ProcTab'.
-Combines 'readNextProc' and 'procInfo' for convenience.
--}
-readNextProcInfo :: HasCallStack => ProcTab -> IO (Either ProcError ProcInfo)
-readNextProcInfo (UnsafeProcTab procTabPtr procPtr') = do
-  procPtr <- readNextProcC procTabPtr procPtr'
-  eitherPeek Internal.fromProcC procPtr
-
-readProcTab' :: HasCallStack => TableConfig -> IO (Ptr (Ptr ProcC))
+readProcTab' :: HasCallStack => TableConfig -> IO (Ptr (Ptr Proc))
 readProcTab' cfg = do
   xprintf "readProcTab'"
   branchTableConfig readAllProcsSimple readAllProcsPids readAllProcsUids cfg
@@ -74,68 +149,20 @@ readPtrArray0 ptr = do
 
 {- | Read all the 'Proc's according to a 'TableConfig'.
 Errors are ignored.
-It is the caller's responsibility to free the internal 'Ptr's once they're done with them.
-It's safer to use 'withAllProcsLenient'.
 -}
-openAllProcsLenient :: HasCallStack => TableConfig -> IO [Proc]
-openAllProcsLenient cfg = rights <$> openAllProcs cfg
+readAllProcsLenient :: HasCallStack => TableConfig -> IO [Proc]
+readAllProcsLenient cfg = rights <$> readAllProcs cfg
 
-{- | Read all the 'Proc's according to a 'TableConfig'.
-It is the caller's responsibility to free the internal 'Ptr's once they're done with them.
-It's safer to use 'withAllProcs'.
--}
-openAllProcs :: HasCallStack => TableConfig -> IO [Either ProcError Proc]
-openAllProcs cfg =
-  readProcTab' cfg
-    >>= readPtrArray0
-    <&> fmap Internal.makeProc
+-- | Read all the 'Proc's according to a 'TableConfig'.
+readAllProcs :: HasCallStack => TableConfig -> IO [Either ProcError Proc]
+readAllProcs cfg =
+  bracket (readProcTab' cfg) freeIfNotNull $ \ptrArray ->
+    bracket (readPtrArray0 ptrArray) (traverse freeProc) $ traverse $ eitherPeek peekProc
+  where
+    freeIfNotNull ptr
+      | ptr == nullPtr = pure ()
+      | otherwise = free ptr
 
-{- | Read all the 'ProcInfo's according to a 'TableConfig'.
-Errors are ignored.
--}
-readAllProcInfos :: HasCallStack => TableConfig -> IO [ProcInfo]
-readAllProcInfos = readProcTab' >=> readPtrArray0 >=> traverse (fmap ProcInfo . readProcCInfo)
-
-{- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
-Internal pointers will be freed after use.
--}
-withAllProcs :: HasCallStack => TableConfig -> ([Either ProcError Proc] -> IO a) -> IO a
-withAllProcs cfg =
-  bracket (openAllProcs cfg) (traverse_ (traverse_ closeProc))
-
-{- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
-Any error reading one 'Proc' leads to an overall error.
-Internal pointers will be freed after use.
--}
-withAllProcsEither :: HasCallStack => TableConfig -> ([Proc] -> IO a) -> IO (Either ProcError a)
-withAllProcsEither cfg f =
-  bracket (openAllProcs cfg) (traverse_ (traverse_ closeProc)) $ traverse f . sequence
-
-{- | Bracketed access to all the 'Proc's read according to a 'TableConfig'.
-Errors are ignored.
-Internal pointers will be freed after use.
--}
-withAllProcsLenient :: HasCallStack => TableConfig -> ([Proc] -> IO a) -> IO a
-withAllProcsLenient cfg =
-  bracket (openAllProcsLenient cfg) (traverse_ closeProc)
-
-{- | Bracketed access to a 'Proc' representing the current proces or task.
-The internal pointer will be freed after use.
--}
-withSelfProc :: HasCallStack => (Proc -> IO a) -> IO (Either ProcError a)
-withSelfProc f = do
-  fmap join . Internal.withProcPtr readSelfProc $
-    traverse f . Internal.makeProc
-
-{- | Try to open a 'Proc' representing the current proces or task.
-It is the caller's responsibility to free the internal 'Ptr' once they're done with it.
-It's safer to use 'withSelfProc'.
--}
-openSelfProc :: HasCallStack => IO (Either ProcError Proc)
-openSelfProc = Internal.makeProc <$> readSelfProc
-
-{- | Free the internal 'Ptr' of a 'Proc', if it's not null.
-The 'Proc' must not be used after 'closeProc' has been called.
--}
-closeProc :: HasCallStack => Proc -> IO ()
-closeProc (Internal.UnsafeProc ptr) = freeProc ptr
+-- | Try to read a 'Proc' representing the current proces or task.
+readSelfProc :: HasCallStack => IO (Either ProcError Proc)
+readSelfProc = bracketReadProc C.readSelfProc

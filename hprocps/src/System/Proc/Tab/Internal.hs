@@ -8,6 +8,7 @@ where
 
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource
+import qualified System.Proc.Bindings as B
 import qualified System.Proc.Bindings.Tab as B
 import qualified System.Proc.Bindings.Tab.Config as B
 import System.Proc.Monad
@@ -31,8 +32,13 @@ getProcTabInfo = liftIO . B.getProcTabInfo . unProcTab
 instance ensures that internal resources will be freed after use.
 -}
 newProcTab :: B.TableConfig -> RegionM s (ProcTab s)
-newProcTab cfg =
-  uncurry UnsafeProcTab <$> allocateMEither (B.openProcTab cfg) B.closeProcTab
+newProcTab cfg = do
+  (eProcTab, closer) <- liftIO $ B.openProcTab cfg
+  case eProcTab of
+    Left err -> liftIO closer >> throwProcErrorT err
+    Right procTab -> do
+      key <- register $ B.closeProcTab procTab >> liftIO closer
+      pure $ UnsafeProcTab key procTab
 
 {- | Release a 'ProcTab' early. Note that this should be done with care, since it makes it possible to
 try to use memory after it's been freed, which is the whole point of this whole regioned monad thing.

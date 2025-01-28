@@ -51,9 +51,11 @@ module System.Proc.Bindings.Tab.Config
 
     -- * Util
   , branchTableConfig
+  , openTableConfig
   )
 where
 
+import Control.Exception
 import Foreign
 import Foreign.C.Types
 import GHC.Stack
@@ -72,7 +74,7 @@ data TableConfig = TableConfig
   }
   deriving (Show, Eq)
 
-{- | Case analysis on 'TableConfig'. The three arguments correspond to the three
+{- | Case analysis on 'TableConfig'. The three continuation arguments correspond to the three
 constructors of 'Filter'.
 
 Handles memory management and makes sure we pass the correct argument to
@@ -96,6 +98,33 @@ branchTableConfig simple onPids onUids (TableConfig flags tabFilter) = do
       withArrayLen uids $ \nuid uidPtr -> do
         xprintf $ "UID pointer: " <> show uidPtr
         onUids flagsInt uidPtr (fromIntegral nuid)
+  where
+    flagsInt = flagsAsInt flags
+
+{- | Same as 'branchTableConfig', but without the bracketing.
+
+The @IO ()@ return value is a cleanup function to free any memory that was allocated for
+@openproc@, e.g an array of @uid_t@s or @pid_t@s.
+-}
+openTableConfig ::
+  (CInt -> IO a) ->
+  (CInt -> Ptr CPid -> IO a) ->
+  (CInt -> Ptr CUid -> CInt -> IO a) ->
+  (TableConfig -> IO (a, IO ()))
+openTableConfig simple onPids onUids (TableConfig flags tabFilter) = do
+  case tabFilter of
+    NoFilter -> do
+      a <- simple flagsInt
+      pure (a, pure ())
+    ByPids pids -> do
+      pidPtr <- newArray0 0 pids
+      a <- onPids flagsInt pidPtr `onException` free pidPtr
+      pure (a, free pidPtr)
+    ByUids uids -> do
+      uidPtr <- newArray uids
+      let nuid = fromIntegral $ length uids
+      a <- onUids flagsInt uidPtr nuid `onException` free uidPtr
+      pure (a, free uidPtr)
   where
     flagsInt = flagsAsInt flags
 

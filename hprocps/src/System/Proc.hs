@@ -1,25 +1,18 @@
 module System.Proc
   ( -- * Process handles
-    Proc
+    B.Proc
   , readSelfProc
   , readAllProcs
   , readAllProcsLenient
   , readAllProcsThrow
-  , releaseProc
 
     -- * Process table
   , ProcTab
   , readNextProc
   , readNextProcMaybe
-  , readAllProcInfos
 
     -- * Regioned monad for resource safety
   , module System.Proc.Monad
-
-    -- * Concrete process information
-  , procInfo
-  , readNextProcInfo
-  , module System.Proc.Bindings.Info
 
     -- * Re-exports
   , module System.Proc.Bindings.Tab.Config
@@ -29,35 +22,18 @@ where
 
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Resource
 import qualified System.Proc.Bindings as B
 import System.Proc.Bindings.Error
-import System.Proc.Bindings.Info
 import System.Proc.Bindings.Tab.Config
 import System.Proc.Monad
 import System.Proc.Tab.Internal
 
-{- | This is the equivalent of 'B.Proc' from @procps-bindings@, see the documentation
-there for more details.
-
-The only difference is the @s@ parameter. This plays the same role as it does in
-'Control.Monad.ST.ST' - see the documentation of 'RegionT' for more.
--}
-data Proc s = UnsafeProc
-  { unProc :: B.Proc
-  , procReleaseKey :: ReleaseKey
-  }
-
--- | Read concrete 'ProcInfo' from a 'Proc' handle.
-procInfo :: MonadIO m => Proc s -> m B.ProcInfo
-procInfo = liftIO . B.procInfo . unProc
-
--- | Read the next 'Proc' from the 'ProcTab'.
-readNextProc :: ProcTab s -> RegionM s (Proc s)
+-- | Read the next 'B.Proc' from the 'ProcTab'.
+readNextProc :: ProcTab s -> RegionM s B.Proc
 readNextProc = readNextProcEither >=> either throwProcErrorT pure
 
--- | Read the next 'Proc' from the 'ProcTab', if there is one. Otherwise return 'Nothing'.
-readNextProcMaybe :: ProcTab s -> RegionM s (Maybe (Proc s))
+-- | Read the next 'B.Proc' from the 'ProcTab', if there is one. Otherwise return 'Nothing'.
+readNextProcMaybe :: ProcTab s -> RegionM s (Maybe B.Proc)
 readNextProcMaybe pt = rightToMaybe <$> readNextProcEither pt
 
 rightToMaybe :: Either e a -> Maybe a
@@ -65,75 +41,25 @@ rightToMaybe = either (const Nothing) Just
 {-# INLINE rightToMaybe #-}
 
 -- DRY
-readNextProcEither :: ProcTab s -> RegionM s (Either ProcError (Proc s))
-readNextProcEither (UnsafeProcTab _ pt) =
-  resourceMask_ $
-    liftIO (B.readNextProc pt) >>= \case
-      Left err -> pure $ Left err
-      Right proc -> do
-        key <- register $ B.closeProc proc
-        pure $ Right $ UnsafeProc proc key
+readNextProcEither :: ProcTab s -> RegionM s (Either ProcError B.Proc)
+readNextProcEither (UnsafeProcTab _ pt) = liftIO (B.readNextProc pt)
 
--- | Open a 'Proc' representing the current proces or task.
-readSelfProc :: RegionM s (Proc s)
-readSelfProc = uncurry (flip UnsafeProc) <$> allocateMEither B.openSelfProc B.closeProc
+-- | Open a 'B.Proc' representing the current proces or task.
+readSelfProc :: ProcM B.Proc
+readSelfProc = liftIO B.readSelfProc >>= either throwProcErrorM pure
 
-resourceMask_ :: MonadResource m => ResourceT IO b -> m b
-resourceMask_ rio = resourceMask $ const rio
-
-{- | Read all the 'Proc's according to a 'TableConfig'.
+{- | Read all the 'B.Proc's according to a 'TableConfig'.
 Errors are ignored.
 -}
-readAllProcsLenient :: TableConfig -> RegionM s [Proc s]
-readAllProcsLenient cfg = resourceMask_ $ do
-  procs <- liftIO $ B.openAllProcsLenient cfg
+readAllProcsLenient :: MonadIO m => TableConfig -> m [B.Proc]
+readAllProcsLenient = liftIO . B.readAllProcsLenient
 
-  forM procs $ \proc -> do
-    key <- register (B.closeProc proc)
-    pure $ UnsafeProc proc key
+-- | Read all the 'B.Proc's according to a 'TableConfig'.
+readAllProcs :: MonadIO m => TableConfig -> m [Either ProcError B.Proc]
+readAllProcs = liftIO . B.readAllProcs
 
--- | Read all the 'Proc's according to a 'TableConfig'.
-readAllProcs :: TableConfig -> RegionM s [Either ProcError (Proc s)]
-readAllProcs cfg = resourceMask_ $ do
-  procs <- liftIO $ B.openAllProcs cfg
-
-  forM procs $ \case
-    Left err -> pure $ Left err
-    Right proc -> do
-      key <- register (B.closeProc proc)
-      pure $ Right $ UnsafeProc proc key
-
-{- | Read all the 'Proc's according to a 'TableConfig'.
+{- | Read all the 'B.Proc's according to a 'TableConfig'.
 Any errors are thrown using 'throwProcErrorT'.
 -}
-readAllProcsThrow :: TableConfig -> RegionM s [Proc s]
-readAllProcsThrow cfg = do
-  eProcs <- resourceMask_ $ do
-    eProcs <- liftIO $ B.openAllProcs cfg
-
-    case sequence eProcs of
-      Left err -> pure $ Left err
-      Right procs ->
-        fmap Right . forM procs $ \proc -> do
-          key <- register (B.closeProc proc)
-          pure $ UnsafeProc proc key
-
-  case eProcs of
-    Left err -> throwProcErrorT err
-    Right procs -> pure procs
-
--- | Read the next 'ProcInfo' in the 'ProcTab'.
-readNextProcInfo :: MonadIO m => ProcTab s -> m (Either ProcError B.ProcInfo)
-readNextProcInfo = liftIO . B.readNextProcInfo . unProcTab
-
-{- | Read all the 'ProcInfo's according to a 'TableConfig'.
-Errors are ignored.
--}
-readAllProcInfos :: MonadIO m => TableConfig -> m [B.ProcInfo]
-readAllProcInfos = liftIO . B.readAllProcInfos
-
-{- | Release a 'Proc' early. Note that this should be done with care, since it makes it possible to
-try to use memory after it's been freed, which is the whole point of this whole regioned monad thing.
--}
-releaseProc :: Proc s -> RegionM s ()
-releaseProc = release . procReleaseKey
+readAllProcsThrow :: TableConfig -> ProcM [B.Proc]
+readAllProcsThrow cfg = liftIO (B.readAllProcs cfg) >>= either throwProcErrorM pure . sequence
