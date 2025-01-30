@@ -1,7 +1,9 @@
+{- HLINT ignore "Avoid lambda" -}
 module System.Proc.Bindings.Tab.Internal where
 
 import Control.Exception
 import Foreign
+import GHC.Stack
 import System.Proc.Bindings.C
 import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Error
@@ -22,19 +24,28 @@ data ProcTab
       (Ptr ProcTabC)
       -- A reusable proc_t pointer to save time allocating and freeing memory.
       -- will be used as the second argument to the @readproc@ C function.
-      (Ptr ProcC)
+      (Ptr Proc)
 
-withProcTabPtr' :: IO (Ptr ProcTabC) -> (Ptr ProcTabC -> IO a) -> IO (Either ProcError a)
-withProcTabPtr' open = bracket open closeProcTabC . eitherPeek
+{- | Open a @'Ptr' 'ProcTabC'@ according to a 'TableConfig'. It is the caller's responsibility
+to check that the 'Ptr' is not null, and to free it once they're done with it.
+
+It's safer to use 'withProcTabPtr', which will automatically clean up all the pointers.
+
+The @IO ()@ return value is a cleanup function to free any memory that was allocated for
+@openproc@, e.g an array of @uid_t@s or @pid_t@s.
+-}
+openProcTabPtr :: HasCallStack => TableConfig -> IO (Ptr ProcTabC, IO ())
+openProcTabPtr = openTableConfig openProcTabSimple openProcTabFromPids openProcTabFromUids
 
 {- | Bracketed access to a @'Ptr' 'ProcTabC'@. The pointer will be freed after use.
 Return a 'ProcError' if the pointer is null.
 -}
-withProcTabPtr :: TableConfig -> (Ptr ProcTabC -> IO a) -> IO (Either ProcError a)
-withProcTabPtr cfg = withProcTabPtr' (openProcTabPtr cfg)
-
-{- | Open a @'Ptr' 'ProcTabC'@ according to a 'TableConfig'. It is the caller's responsibility
-to check that the 'Ptr' is not null, and to free it once they're done with it.
--}
-openProcTabPtr :: TableConfig -> IO (Ptr ProcTabC)
-openProcTabPtr = branchTableConfig openProcTabSimple openProcTabFromPids openProcTabFromUids
+withProcTabPtr :: HasCallStack => TableConfig -> (Ptr ProcTabC -> IO a) -> IO (Either ProcError a)
+withProcTabPtr cfg f =
+  branchTableConfig
+    (\flags -> bracketProcTab (openProcTabSimple flags))
+    (\flags pidPtr -> bracketProcTab (openProcTabFromPids flags pidPtr))
+    (\flags uidPtr nuid -> bracketProcTab (openProcTabFromUids flags uidPtr nuid))
+    cfg
+  where
+    bracketProcTab open = bracket open closeProcTabC (eitherPeek f)

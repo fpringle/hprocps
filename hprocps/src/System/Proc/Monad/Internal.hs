@@ -9,23 +9,42 @@ import Control.Monad.Trans.Resource
 'Control.Monad.ST.ST' monad. It is used by functions like 'System.Proc.readNextProc' etc
 to ensure that our access to memory managed by unsafe pointers is limited to \"regions\".
 
-For example, the following code will not compile:
+For example, the following code uses only functions in "procps-bindings" and compiles fine,
+but will probably segfault on the final line:
+
+@
+main :: IO ()
+main = void $ do
+  Right pt <- do
+    let cfg :: 'System.Proc.Bindings.Tab.Config.TableConfig' = ...
+
+    'System.Proc.Bindings.Tab.withProcTab' cfg $ \proctab -> do
+      'System.Proc.Bindings.readNextProc' proctab >>= print . fmap 'System.Proc.Bindings.cmd'
+
+      pure proctab
+
+  'System.Proc.Bindings.readNextProc' pt >>= print . fmap 'System.Proc.Bindings.cmd'
+@
+
+However, the following equivalent code will refuse to compile:
 
 @
 main :: IO ()
 main = void . 'System.Proc.Monad.runProcM' $ do
-  p <- 'System.Proc.Monad.runRegionM' $ do
-    -- we can open the 'System.Proc.Proc' inside t'System.Proc.Monad.RegionM'
-    self <- 'System.Proc.readSelfProc'
+  pt <- 'System.Proc.Monad.runRegionM' $ do
+    let cfg :: 'System.Proc.Bindings.Tab.Config.TableConfig' = ...
+
+    -- we can open the 'System.Proc.Tab.ProcTab' inside t'System.Proc.Monad.RegionM'
+    proctab <- 'System.Proc.Tab.newProcTab' cfg
 
     -- this is fine
-    'System.Proc.procInfo' self >>= liftIO . print . 'System.Proc.Bindings.Info.cmd'
+    'System.Proc.readNextProc' proctab >>= liftIO . print . 'System.Proc.Bindings.cmd'
 
     -- this is not
-    pure self
+    pure proctab
 
   -- this would cause undefined behaviour if it was allowed
-  'System.Proc.procInfo' p >>= liftIO . print . 'System.Proc.Bindings.Info.cmd'
+  'System.Proc.Tab.getProcTabInfo' pt >>= liftIO . print
 @
 
 This is derived from a [technique](https://okmij.org/ftp/Haskell/regions.html#light-weight)
