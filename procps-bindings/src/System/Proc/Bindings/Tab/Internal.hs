@@ -10,12 +10,16 @@ import System.Proc.Bindings.Error
 import System.Proc.Bindings.Tab.C
 import System.Proc.Bindings.Tab.Config
 
-{- | The proctab (process table) is a persistent data structure holding the information
+{- | The proctab (process table) is a persistent handle-like data structure holding the information
 the library needs to read process information. While 'System.Proc.Bindings.Proc's are
-typically ephemeral, the 'ProcTab' is more long lived. Typically it will be created and
-populated by 'System.Proc.Bindings.Tab.openProcTab' (or 'System.Proc.Bindings.Tab.withProcTab', which handles memory management); the 'TableConfig'
+typically ephemeral, the 'ProcTab' is more long lived.
+
+Typically it will be created and populated by 'System.Proc.Bindings.Tab.openProcTab'
+(or 'System.Proc.Bindings.Tab.withProcTab', which handles memory management); the 'TableConfig'
 tells the underlying library what information we want to read, but no actual process information
-is read yet. We then query the 'ProcTab' for information about processes, using functions like
+is read yet.
+
+We then query the 'ProcTab' for information about processes, using functions like
 'System.Proc.Bindings.readNextProc' or 'System.Proc.Bindings.readNextProcInfo'
 -}
 data ProcTab
