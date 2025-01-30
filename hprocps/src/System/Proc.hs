@@ -1,3 +1,58 @@
+{- |
+
+== Example
+
+@
+import Control.Monad.IO.Class
+import System.Proc
+import System.Proc.Tab
+import Text.Show.Pretty
+
+main :: IO ()
+main = do
+  let flags =
+        'fillMem'
+          <> 'fillCom'
+          <> 'fillUser'
+          <> 'fillGroup'
+          <> 'fillStatus'
+          <> 'fillStat'
+          <> 'fillArg'
+      procFilter = 'ByUids' [1000]
+      config = 'TableConfig' flags procFilter
+
+  result <- 'runProcM' $ 'runRegionT' $ do
+    proctab <- 'newProcTab' config
+    info <- 'getProcTabInfo' proctab
+    liftIO $ pPrint info
+
+    proc <- 'readNextProc' proctab
+    liftIO $ pPrint proc
+
+  case result of
+    Left err -> print err
+    Right _ -> pure ()
+@
+
+Output:
+
+@
+ProcTabInfo
+  { didFake = False
+  , pids = []
+  , uids = [ 1000 ]
+  , flags = 16763
+  , path = ""
+  }
+Proc
+  { taskId = 1962
+  , parentPid = 1
+  , userModeCPUTime = 5
+  , startTimeInSeconds = 904
+  , ...
+  }
+@
+-}
 module System.Proc
   ( -- * Process handles
     B.Proc
