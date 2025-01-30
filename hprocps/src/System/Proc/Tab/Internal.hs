@@ -10,7 +10,6 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource
 import qualified System.Proc.Bindings as B
 import qualified System.Proc.Bindings.Tab as B
-import qualified System.Proc.Bindings.Tab.Config as B
 import System.Proc.Monad
 
 {- | This is the equivalent of 'B.ProcTab' from @procps-bindings@, see the documentation

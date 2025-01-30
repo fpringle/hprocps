@@ -179,7 +179,6 @@ import System.Proc.Bindings.C as C
 import System.Proc.Bindings.C.Utils
 import System.Proc.Bindings.Error
 import System.Proc.Bindings.Tab
-import System.Proc.Bindings.Tab.Config
 import System.Proc.Bindings.Tab.Internal
 
 bracketReadProc :: HasCallStack => IO (Ptr Proc) -> IO (Either ProcError Proc)

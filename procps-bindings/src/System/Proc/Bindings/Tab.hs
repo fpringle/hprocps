@@ -6,6 +6,7 @@ module System.Proc.Bindings.Tab
   , ProcTabInfo (..)
   , getProcTabInfo
   , readProcTabInfo
+  , module System.Proc.Bindings.Tab.Config
   )
 where
 
