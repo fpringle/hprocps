@@ -181,15 +181,11 @@ import System.Proc.Bindings.Error
 import System.Proc.Bindings.Tab
 import System.Proc.Bindings.Tab.Internal
 
-bracketReadProc :: HasCallStack => IO (Ptr Proc) -> IO (Either ProcError Proc)
-bracketReadProc open =
-  bracket open freeProc $ eitherPeek peekProc
-
 -- | Read the next 'Proc' from the 'ProcTab'.
-readNextProc :: HasCallStack => ProcTab -> IO (Either ProcError Proc)
+readNextProc :: HasCallStack => ProcTab -> IO (Maybe Proc)
 readNextProc (UnsafeProcTab procTabPtr procPtr') = do
   readNextProcPtr procTabPtr procPtr'
-    >>= eitherPeek peekProc
+    >>= maybePeek peekProc
 
 readProcTab' :: HasCallStack => TableConfig -> IO (Ptr (Ptr Proc))
 readProcTab' cfg = do
@@ -221,4 +217,5 @@ readAllProcs cfg =
 
 -- | Try to read a 'Proc' representing the current proces or task.
 readSelfProc :: HasCallStack => IO (Either ProcError Proc)
-readSelfProc = bracketReadProc C.readSelfProc
+readSelfProc =
+  bracket C.readSelfProc freeProc $ eitherPeek peekProc

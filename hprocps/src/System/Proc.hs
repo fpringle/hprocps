@@ -63,7 +63,6 @@ module System.Proc
 
     -- * Process table
   , ProcTab
-  , readNextProc
   , readNextProcMaybe
 
     -- * Regioned monad for resource safety
@@ -75,7 +74,6 @@ module System.Proc
   )
 where
 
-import Control.Monad
 import Control.Monad.IO.Class
 import qualified System.Proc.Bindings as B
 import System.Proc.Bindings.Error
@@ -83,21 +81,9 @@ import System.Proc.Bindings.Tab.Config
 import System.Proc.Monad
 import System.Proc.Tab.Internal
 
--- | Read the next 'B.Proc' from the 'ProcTab'.
-readNextProc :: ProcTab s -> RegionM s B.Proc
-readNextProc = readNextProcEither >=> either throwProcErrorT pure
-
 -- | Read the next 'B.Proc' from the 'ProcTab', if there is one. Otherwise return 'Nothing'.
 readNextProcMaybe :: ProcTab s -> RegionM s (Maybe B.Proc)
-readNextProcMaybe pt = rightToMaybe <$> readNextProcEither pt
-
-rightToMaybe :: Either e a -> Maybe a
-rightToMaybe = either (const Nothing) Just
-{-# INLINE rightToMaybe #-}
-
--- DRY
-readNextProcEither :: ProcTab s -> RegionM s (Either ProcError B.Proc)
-readNextProcEither (UnsafeProcTab _ pt) = liftIO (B.readNextProc pt)
+readNextProcMaybe (UnsafeProcTab _ pt) = liftIO (B.readNextProc pt)
 
 -- | Open a 'B.Proc' representing the current proces or task.
 readSelfProc :: ProcM B.Proc
