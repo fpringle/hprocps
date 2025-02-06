@@ -86,33 +86,33 @@ For more detailed information, see the following man pages:
 - [proc_pid_task.5](https://man7.org/linux/man-pages/man5/proc_pid_task.5.html)
 -}
 data Proc = Proc
-  { taskId :: CInt 
+  { taskId :: CInt
   {- ^ Task ID, the POSIX thread ID (see also: 'threadGroupId').
 
   Always read.
   -}
-  , parentPid :: CInt 
+  , parentPid :: CInt
   {- ^ Process ID of parent process.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' or
   'System.Proc.Bindings.Tab.Config.flagStatus'.
   -}
-  , majDelta :: CULong 
+  , majDelta :: CULong
   {- ^ Major page faults since last update.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' (special).
   -}
-  , minDelta :: CULong 
+  , minDelta :: CULong
   {- ^ Minor page faults since last update.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' (special).
   -}
-  , cpuUsagePercent :: CUInt 
+  , cpuUsagePercent :: CUInt
   {- ^ %CPU usage (is not filled in by 'System.Proc.Bindings.readNextProc').
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' (special).
   -}
-  , processStateCode :: CChar 
+  , processStateCode :: CChar
   {- ^ Single-char code for process state.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' or
@@ -148,30 +148,30 @@ data Proc = Proc
   I      Idle (Linux 4.14 onward)
   @
   -}
-  -- , procc_pad_1 :: CChar 
-  -- , procc_pad_2 :: CChar 
-  -- , procc_pad_3 :: CChar 
-  , userModeCPUTime :: CULLong 
+  -- , procc_pad_1 :: CChar
+  -- , procc_pad_2 :: CChar
+  -- , procc_pad_3 :: CChar
+  , userModeCPUTime :: CULLong
   {- ^ User-mode CPU time accumulated by process.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , kernelModeCPUTime :: CULLong 
+  , kernelModeCPUTime :: CULLong
   {- ^ Kernel-mode CPU time accumulated by process.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , cumulativeUserModeCPUTime :: CULLong 
+  , cumulativeUserModeCPUTime :: CULLong
   {- ^ Cumulative utime of process and reaped children.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , cumulativeKernelModeCPUTime :: CULLong 
+  , cumulativeKernelModeCPUTime :: CULLong
   {- ^ Cumulative stime of process and reaped children.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , startTimeInSeconds :: CULLong 
+  , startTimeInSeconds :: CULLong
   {- ^ Start time of process: seconds since system boot.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
@@ -201,52 +201,52 @@ data Proc = Proc
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , codeStartAddress :: Address 
+  , codeStartAddress :: Address
   {- ^ Address of beginning of code segment.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , codeEndAddress :: Address 
+  , codeEndAddress :: Address
   {- ^ Address of end of code segment.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , stackBottomAddress :: Address 
+  , stackBottomAddress :: Address
   {- ^ Address of the bottom of stack for the process.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , kernelStackPointer :: Address 
+  , kernelStackPointer :: Address
   {- ^ Kernel stack pointer.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , kernelInstructionPointer :: Address 
+  , kernelInstructionPointer :: Address
   {- ^ Kernel instruction pointer.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , kernelWaitChannelAddress :: Address 
+  , kernelWaitChannelAddress :: Address
   {- ^ Address of kernel wait channel proc is sleeping in.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' (special).
   -}
-  , kernelSchedulingPriority :: CLong 
+  , kernelSchedulingPriority :: CLong
   {- ^ Kernel scheduling priority.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , niceLevel :: CLong 
+  , niceLevel :: CLong
   {- ^ Standard unix nice level of process.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , rss :: CLong 
+  , rss :: CLong
   {- ^ Identical to 'residentNonSwappedMemInPages'.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , alarm :: CLong 
+  , alarm :: CLong
   {- ^ Not used since Linux 2.6.17.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
@@ -260,137 +260,137 @@ data Proc = Proc
   and is hard coded as 0.
   @
   -}
-  , totalVirtualMemInPages :: CLong 
+  , totalVirtualMemInPages :: CLong
   {- ^ Total virtual memory (as # pages).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagMem'.
   -}
-  , residentNonSwappedMemInPages :: CLong 
+  , residentNonSwappedMemInPages :: CLong
   {- ^ Resident non-swapped memory (as # pages).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagMem'.
   -}
-  , sharedMemInPages :: CLong 
+  , sharedMemInPages :: CLong
   {- ^ Shared (mmap'd) memory (as # pages).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagMem'.
   -}
-  , textResidentSetInPages :: CLong 
+  , textResidentSetInPages :: CLong
   {- ^ Text (exe) resident set (as # pages).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagMem'.
   -}
-  , libraryResidentSetInPages :: CLong 
+  , libraryResidentSetInPages :: CLong
   {- ^ Library resident set (always 0 w/ 2.6).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagMem'.
   -}
-  , dataAndStackResidentSetInPages :: CLong 
+  , dataAndStackResidentSetInPages :: CLong
   {- ^ Data+stack resident set (as # pages).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagMem'.
   -}
-  , dirtyPages :: CLong 
+  , dirtyPages :: CLong
   {- ^ Dirty pages (always 0 w/ 2.6).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagMem'.
   -}
-  , vmSizeInKb :: CULong 
+  , vmSizeInKb :: CULong
   {- ^ Equals 'totalVirtualMemInPages' (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmLockedPagesInKb :: CULong 
+  , vmLockedPagesInKb :: CULong
   {- ^ Locked pages (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmRssInKb :: CULong 
+  , vmRssInKb :: CULong
   {- ^ Equals 'rss' and/or 'residentNonSwappedMemInPages' (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmRssAnonInKb :: CULong 
+  , vmRssAnonInKb :: CULong
   {- ^ The @anonymous@ portion of vm_rss (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmRssFileBackedInKb :: CULong 
+  , vmRssFileBackedInKb :: CULong
   {- ^ The @file-backed@ portion of vm_rss (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmRssSharedInKb :: CULong 
+  , vmRssSharedInKb :: CULong
   {- ^ The @shared@ portion of vm_rss (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmDataSizeInKb :: CULong 
+  , vmDataSizeInKb :: CULong
   {- ^ Data only size (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmStackSizeInKb :: CULong 
+  , vmStackSizeInKb :: CULong
   {- ^ Stack only size (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmSwapSizeInKb :: CULong 
+  , vmSwapSizeInKb :: CULong
   {- ^ Based on linux-2.6.34 "swap ents" (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmExeInKb :: CULong 
+  , vmExeInKb :: CULong
   {- ^ Equals 'textResidentSetInPages' (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , vmTotalLibraryPagesInKb :: CULong 
+  , vmTotalLibraryPagesInKb :: CULong
   {- ^ Total, not just used, library pages (as kb).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , realTimePriority :: CULong 
+  , realTimePriority :: CULong
   {- ^ Real-time priority.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , schedulingClass :: CULong 
+  , schedulingClass :: CULong
   {- ^ Scheduling class.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , virtualMemoryInPages :: CULong 
+  , virtualMemoryInPages :: CULong
   {- ^ Number of pages of virtual memory.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , residentSetSizeLimit :: CULong 
+  , residentSetSizeLimit :: CULong
   {- ^ Resident set size limit?
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , kernelFlags :: CULong 
+  , kernelFlags :: CULong
   {- ^ Kernel flags for the process.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , minorPageFaults :: CULong 
+  , minorPageFaults :: CULong
   {- ^ Number of minor page faults since process start.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , majorPageFaults :: CULong 
+  , majorPageFaults :: CULong
   {- ^ Number of major page faults since process start.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , cumulativeMinorPageFaults :: CULong 
+  , cumulativeMinorPageFaults :: CULong
   {- ^ Cumulative min_flt of process and child processes.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , cumulativeMajorPageFaults :: CULong 
+  , cumulativeMajorPageFaults :: CULong
   {- ^ Cumulative maj_flt of process and child processes.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
@@ -473,95 +473,95 @@ data Proc = Proc
   -}
   -- , procc_ring :: () -- struct proc_t *
   -- , procc_next :: () -- struct proc_t *
-  , processGroupId :: CInt 
+  , processGroupId :: CInt
   {- ^ Process group ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , sessionId :: CInt 
+  , sessionId :: CInt
   {- ^ Session ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , numberOfThreasds :: CInt 
+  , numberOfThreasds :: CInt
   {- ^ Number of threads, or 0 if no clue.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' or
   'System.Proc.Bindings.Tab.Config.flagStatus'.
   -}
-  , threadGroupId :: CInt 
+  , threadGroupId :: CInt
   {- ^ Thread group ID, the POSIX PID (see also: 'taskId').
 
   Always read.
   -}
-  , ttyNumber :: CInt 
+  , ttyNumber :: CInt
   {- ^ Full device number of controlling terminal.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , effectiveUserId :: CInt 
+  , effectiveUserId :: CInt
   {- ^ Effective user ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' or
   'System.Proc.Bindings.Tab.Config.flagStatus'.
   -}
-  , effectiveGroupId :: CInt 
+  , effectiveGroupId :: CInt
   {- ^ Effective group ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat' or
   'System.Proc.Bindings.Tab.Config.flagStatus'.
   -}
-  , realUserId :: CInt 
+  , realUserId :: CInt
   {- ^ Real user ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , realGroupId :: CInt 
+  , realGroupId :: CInt
   {- ^ Real group ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , savedUserId :: CInt 
+  , savedUserId :: CInt
   {- ^ Saved user ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , savedGroupId :: CInt 
+  , savedGroupId :: CInt
   {- ^ Saved group ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , filesystemUserId :: CInt 
+  , filesystemUserId :: CInt
   {- ^ Fs user ID (used for file access only).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , filesystemGroupId :: CInt 
+  , filesystemGroupId :: CInt
   {- ^ Fs group ID (used for file access only).
 
   Read when 'System.Proc.Bindings.Tab.Config.fillStatus'.
   -}
-  , terminalProcessGroupId :: CInt 
+  , terminalProcessGroupId :: CInt
   {- ^ Terminal process group ID.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , exitSignal :: CInt 
+  , exitSignal :: CInt
   {- ^ Might not be SIGCHLD.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , cpu :: CInt 
+  , cpu :: CInt
   {- ^ Current (or most recent?) CPU.
 
   Read when 'System.Proc.Bindings.Tab.Config.flagStat'.
   -}
-  , oomScore :: CInt 
+  , oomScore :: CInt
   {- ^ (badness for OOM killer).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagOOM'.
   -}
-  , oomAdjustment :: CInt 
+  , oomAdjustment :: CInt
   {- ^ (adjustment to OOM score).
 
   Read when 'System.Proc.Bindings.Tab.Config.flagOOM'.
