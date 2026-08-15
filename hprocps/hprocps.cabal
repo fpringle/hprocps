@@ -1,8 +1,9 @@
 cabal-version:      3.0
 name:               hprocps
 version:            0.1.0.0
--- synopsis:
--- description:
+synopsis:           Library for querying the proctab for information about running processes.
+description:        Library for querying the proctab for information about running processes. This is a higher-level library using procps-bindings.
+category:           Control, System
 license:            BSD-3-Clause
 license-file:       LICENSE
 author:             Frederick Pringle
@@ -16,10 +17,10 @@ common warnings
 
 common deps
   build-depends:
-    , base >= 4
-    , procps-bindings
-    , resourcet
-    , transformers
+    , base >= 4 && < 5
+    , procps-bindings >= 0.1.0.0
+    , resourcet >= 1.2.0 && < 1.4.0
+    , transformers >= 0.5 && < 0.7
 
 common extensions
   default-extensions:

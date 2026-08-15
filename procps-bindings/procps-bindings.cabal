@@ -1,8 +1,9 @@
 cabal-version:      3.0
 name:               procps-bindings
 version:            0.1.0.0
--- synopsis:
--- description:
+synopsis:           Haskell bindings to the procps library
+description:        Haskell bindings to the procps library.
+category:           Control, System
 license:            BSD-3-Clause
 license-file:       LICENSE
 author:             Frederick Pringle
