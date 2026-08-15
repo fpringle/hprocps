@@ -18,7 +18,7 @@ main = void $ do
   Right pt <- do
     let cfg :: 'System.Proc.Bindings.Tab.Config.TableConfig' = ...
 
-    'System.Proc.Bindings.Tab.withProcTab' cfg $ \proctab -> do
+    'System.Proc.Bindings.Tab.withProcTab' cfg $ \\proctab -> do
       'System.Proc.Bindings.readNextProc' proctab >>= print . fmap 'System.Proc.Bindings.cmd'
 
       pure proctab
@@ -48,11 +48,11 @@ main = void . 'System.Proc.Monad.runProcM' $ do
 @
 
 This is derived from a [technique](https://okmij.org/ftp/Haskell/regions.html#light-weight)
-described by Oleg Kiselyov and Chung-chieh Shan, and demonstrated in the
-[regions](https://hackage.haskell.org/package/regions) package.
+described by Oleg Kiselyov and Chung-chieh Shan, and demonstrated in
+the [regions](https://hackage.haskell.org/package/regions) package.
 
-Combined with the 'MonadResource' instance provided by 'System.Proc.Monad.ProcM' (see
-t'System.Proc.Monad.RegionM' for a convenient type alias), this gives us strong
+Combined with the 'MonadResource' instance provided by 'System.Proc.Monad.ProcM'
+(see t'System.Proc.Monad.RegionM' for a convenient type alias), this gives us strong
 guarantees that we won't segfault or read garbage data from freed memory.
 -}
 newtype RegionT s m a = RegionT (m a)
